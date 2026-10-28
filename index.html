@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SetlistForge | Cross-Domain Music, Film &amp; Sonic Mood Arc Planner</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="console-shell">
+    <!-- Top Mastering Console Header -->
+    <header class="console-header" role="banner">
+      <div class="brand-cluster">
+        <div class="hardware-badge" aria-hidden="true">
+          <span class="led-dot led-vermilion"></span>
+          <span class="model-code">Model SF-08 // Qloo Taste AI Mastering Console</span>
+        </div>
+        <h1 class="brand-title">SetlistForge</h1>
+        <p class="brand-subtitle">
+          Cross-domain music, film, literary, and sonic mood arc planner with harmonic Camelot sequencing
+        </p>
+      </div>
+
+      <div class="header-actions">
+        <div class="scenario-control">
+          <label for="scenarioSelect" class="control-label">Curated Cultural Scenario</label>
+          <select id="scenarioSelect" class="console-select" aria-label="Select curated cultural scenario">
+            <option value="kyoto_cinema">Late-Night Kyoto Cinema (Wong Kar-wai + Murakami + Kissaten)</option>
+            <option value="berlin_noir">Brutalist Cyber-Noir (Blade Runner 2049 + Pattern Recognition + Kraftwerk Vault)</option>
+            <option value="desert_canyon">Widescreen Desert &amp; Canyon (Paris, Texas + Joan Didion + Joshua Tree)</option>
+            <option value="tokyo_hauntology">Tokyo Jetlag &amp; Hauntology (Lost in Translation + Mark Fisher + Pirate Rooftop)</option>
+          </select>
+        </div>
+
+        <div class="header-button-group">
+          <button type="button" id="auditionFullArcBtn" class="btn btn-secondary">
+            Audition Setlist Chords
+          </button>
+          <button type="button" id="toggleDrawerBtn" class="btn btn-primary" aria-expanded="false" aria-controls="qlooExportDrawer">
+            Qloo API &amp; Export Console
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Two-Column Console Workspace -->
+    <main class="console-grid" role="main">
+      <!-- Left Column: Cross-Domain Seed Conditioning & Energy Arc Faders -->
+      <aside class="left-rack" aria-label="Seed conditioning and energy arc controls">
+        <!-- Module 01: Cross-Domain Cultural Seed Conditioning -->
+        <section class="console-module" aria-labelledby="seedModuleHeading">
+          <div class="module-header">
+            <div>
+              <h2 id="seedModuleHeading" class="module-title">1. Cross-Domain Seed Conditioning</h2>
+              <p class="module-desc">Select 1 to 4 films, books, sonic venues, or anchor tracks to shape the 8D taste centroid.</p>
+            </div>
+            <span id="seedCountBadge" class="meter-pill">3 / 4 seeds</span>
+          </div>
+
+          <!-- Active Selected Seeds Tray -->
+          <div class="selected-seeds-tray" id="selectedSeedsTray" aria-live="polite"></div>
+
+          <!-- 8D Taste Centroid VU Meter Strip -->
+          <div class="centroid-panel">
+            <div class="centroid-header">
+              <span class="panel-Title-small">Composite 8D Taste Vector Centroid</span>
+              <span id="dominantTraitsLabel" class="trait-summary-pill">Warmth + Nostalgia</span>
+            </div>
+            <div id="centroidBarsContainer" class="centroid-bars" role="region" aria-label="8-dimensional taste centroid meters"></div>
+          </div>
+
+          <!-- Catalog Filter & Search -->
+          <div class="catalog-filter-bar">
+            <div class="domain-tabs" role="tablist" aria-label="Filter cultural catalog by domain">
+              <button type="button" class="domain-tab active" data-domain="ALL" role="tab" aria-selected="true">All (36)</button>
+              <button type="button" class="domain-tab" data-domain="Films &amp; Directors" role="tab" aria-selected="false">Films (6)</button>
+              <button type="button" class="domain-tab" data-domain="Books &amp; Essays" role="tab" aria-selected="false">Books (6)</button>
+              <button type="button" class="domain-tab" data-domain="Sonic Venues &amp; Aesthetics" role="tab" aria-selected="false">Venues (6)</button>
+              <button type="button" class="domain-tab" data-domain="Music Tracks" role="tab" aria-selected="false">Tracks (18)</button>
+            </div>
+            <input
+              type="search"
+              id="catalogSearchInput"
+              class="console-input"
+              placeholder="Filter 36 entities by title, creator, key, or tag..."
+              aria-label="Filter cultural entities"
+            />
+          </div>
+
+          <!-- Scrollable Catalog Grid -->
+          <div id="seedCatalogList" class="seed-catalog-list" role="list" aria-label="Cultural entities catalog"></div>
+        </section>
+
+        <!-- Module 02: Energy Arc Curve & Sequencer Parameters -->
+        <section class="console-module" aria-labelledby="arcModuleHeading">
+          <div class="module-header">
+            <div>
+              <h2 id="arcModuleHeading" class="module-title">2. Energy Arc &amp; Optimizer Faders</h2>
+              <p class="module-desc">Shape the target narrative envelope and adjust beam-search objective weights.</p>
+            </div>
+            <span id="activeArcBadge" class="meter-pill pill-vermilion">Slow Burn Crescendo</span>
+          </div>
+
+          <!-- Arc Preset Buttons -->
+          <div class="arc-preset-grid" id="arcPresetButtons" role="group" aria-label="Energy arc curve presets">
+            <button type="button" class="arc-preset-btn active" data-preset="slow_burn">Slow Burn Crescendo</button>
+            <button type="button" class="arc-preset-btn" data-preset="late_night_noir">Late-Night Noir Wave</button>
+            <button type="button" class="arc-preset-btn" data-preset="peak_hour_festival">Peak-Hour Festival Arc</button>
+            <button type="button" class="arc-preset-btn" data-preset="warm_acoustic_dawn">Warm Acoustic Dawn</button>
+          </div>
+
+          <!-- 6-Point Spline Sliders -->
+          <div class="spline-fader-bank">
+            <div class="subpanel-header">
+              <span>6-Point Target Energy Spline</span>
+              <button type="button" id="resetSplineBtn" class="btn-link">Reset to Preset</button>
+            </div>
+            <div class="spline-sliders-row" id="splineSlidersContainer">
+              <div class="fader-column">
+                <input type="range" min="10" max="98" value="28" class="spline-slider" data-stage="0" aria-label="Stage 1 Opening Energy" />
+                <span class="fader-val" id="splineVal0">28%</span>
+                <span class="fader-stage">S1</span>
+              </div>
+              <div class="fader-column">
+                <input type="range" min="10" max="98" value="38" class="spline-slider" data-stage="1" aria-label="Stage 2 Early Build Energy" />
+                <span class="fader-val" id="splineVal1">38%</span>
+                <span class="fader-stage">S2</span>
+              </div>
+              <div class="fader-column">
+                <input type="range" min="10" max="98" value="50" class="spline-slider" data-stage="2" aria-label="Stage 3 Mid Arc Energy" />
+                <span class="fader-val" id="splineVal2">50%</span>
+                <span class="fader-stage">S3</span>
+              </div>
+              <div class="fader-column">
+                <input type="range" min="10" max="98" value="64" class="spline-slider" data-stage="3" aria-label="Stage 4 Horizon Swell Energy" />
+                <span class="fader-val" id="splineVal3">64%</span>
+                <span class="fader-stage">S4</span>
+              </div>
+              <div class="fader-column">
+                <input type="range" min="10" max="98" value="80" class="spline-slider" data-stage="4" aria-label="Stage 5 Climax Energy" />
+                <span class="fader-val" id="splineVal4">80%</span>
+                <span class="fader-stage">S5</span>
+              </div>
+              <div class="fader-column">
+                <input type="range" min="10" max="98" value="68" class="spline-slider" data-stage="5" aria-label="Stage 6 Resolution Energy" />
+                <span class="fader-val" id="splineVal5">68%</span>
+                <span class="fader-stage">S6</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Setlist Length & Objective Weights -->
+          <div class="optimizer-controls">
+            <div class="slider-row">
+              <div class="slider-label-line">
+                <label for="trackLengthSlider">Setlist Track Count</label>
+                <span id="trackLengthValue" class="mono-readout">8 Tracks</span>
+              </div>
+              <input type="range" id="trackLengthSlider" min="6" max="12" step="1" value="8" class="horizontal-slider" />
+            </div>
+
+            <div class="slider-row">
+              <div class="slider-label-line">
+                <label for="weightAffinitySlider">Seed Taste Affinity Weight</label>
+                <span id="weightAffinityValue" class="mono-readout">0.40</span>
+              </div>
+              <input type="range" id="weightAffinitySlider" min="10" max="80" step="5" value="40" class="horizontal-slider" />
+            </div>
+
+            <div class="slider-row">
+              <div class="slider-label-line">
+                <label for="weightEnergySlider">Energy Curve Fit Weight</label>
+                <span id="weightEnergyValue" class="mono-readout">0.34</span>
+              </div>
+              <input type="range" id="weightEnergySlider" min="10" max="80" step="5" value="34" class="horizontal-slider" />
+            </div>
+
+            <div class="slider-row">
+              <div class="slider-label-line">
+                <label for="weightHarmonicSlider">Camelot Harmonic Smoothness Weight</label>
+                <span id="weightHarmonicValue" class="mono-readout">0.26</span>
+              </div>
+              <input type="range" id="weightHarmonicSlider" min="10" max="80" step="5" value="26" class="horizontal-slider" />
+            </div>
+
+            <div class="Pinned-actions-row">
+              <button type="button" id="clearPinsBtn" class="btn btn-secondary btn-small">Clear All Pinned Slots</button>
+              <button type="button" id="resequenceBtn" class="btn btn-primary btn-small">Run Beam Sequencer</button>
+            </div>
+          </div>
+        </section>
+      </aside>
+
+      <!-- Right Column: SVG Arc Plot, Web Audio Synth Monitor & Tracklist Deck -->
+      <section class="right-console" aria-label="Energy curve visualization and sequenced setlist">
+        <!-- Telemetry Readout Strip -->
+        <div class="telemetry-strip" role="region" aria-label="Setlist telemetry metrics">
+          <div class="telemetry-card">
+            <span class="telemetry-label">Overall Arc Score</span>
+            <strong id="metricOverallScore" class="telemetry-value val-emerald">88%</strong>
+            <span class="telemetry-sub">Joint beam optimum</span>
+          </div>
+          <div class="telemetry-card">
+            <span class="telemetry-label">Seed Taste Affinity</span>
+            <strong id="metricMeanAffinity" class="telemetry-value">91%</strong>
+            <span class="telemetry-sub">8D cosine resonance</span>
+          </div>
+          <div class="telemetry-card">
+            <span class="telemetry-label">Energy Curve Fit</span>
+            <strong id="metricEnergyFit" class="telemetry-value val-vermilion">95%</strong>
+            <span id="metricEnergyMse" class="telemetry-sub">MSE 0.012</span>
+          </div>
+          <div class="telemetry-card">
+            <span class="telemetry-label">Harmonic Smoothness</span>
+            <strong id="metricHarmonicScore" class="telemetry-value val-cobalt">86%</strong>
+            <span id="metricCamelotPath" class="telemetry-sub">7A -&gt; 8A -&gt; 8B</span>
+          </div>
+          <div class="telemetry-card">
+            <span class="telemetry-label">Total Set Runtime</span>
+            <strong id="metricTotalDuration" class="telemetry-value">33m 40s</strong>
+            <span class="telemetry-sub">Mastered sequence</span>
+          </div>
+        </div>
+
+        <!-- Module 03: Interactive SVG Energy & Harmonic Transition Curve -->
+        <section class="console-module chart-module" aria-labelledby="svgArcHeading">
+          <div class="module-header">
+            <div>
+              <h2 id="svgArcHeading" class="module-title">3. Energy &amp; Harmonic Transition Curve</h2>
+              <p class="module-desc">
+                Signal Vermilion plots target energy; Harmonic Cobalt plots actual track energy and Camelot key bridges. Click any transition badge to audition chords.
+              </p>
+            </div>
+            <div class="chart-legend">
+              <span class="legend-item"><span class="legend-swatch swatch-vermilion"></span>Target Arc</span>
+              <span class="legend-item"><span class="legend-swatch swatch-cobalt"></span>Actual Track Energy</span>
+              <span class="legend-item"><span class="legend-swatch swatch-emerald"></span>Camelot Key Bridge</span>
+            </div>
+          </div>
+
+          <div class="svg-chart-frame">
+            <svg
+              id="energyArcSvg"
+              viewBox="0 0 860 280"
+              role="img"
+              aria-label="Interactive energy curve comparing target energy against actual track energy and Camelot key transitions"
+            ></svg>
+          </div>
+
+          <!-- Web Audio Harmonic Synth Status Bar -->
+          <div class="synth-monitor-bar" id="synthMonitorBar" aria-live="polite">
+            <div class="synth-indicator">
+              <span class="led-dot led-emerald" id="synthLed"></span>
+              <strong class="synth-title">Web Audio Harmonic Preview Synth:</strong>
+              <span id="synthStatusText">Ready. Click any "Audition Transition" button or chart bridge to synthesize two-chord harmonic mixing.</span>
+            </div>
+            <div id="synthFreqReadout" class="synth-freq-readout">440 Hz // LP Filter 1600 Hz</div>
+          </div>
+        </section>
+
+        <!-- Module 04: Sequenced Track Deck, Pin/Swap Controls & Cross-Domain Explainability -->
+        <section class="console-module" aria-labelledby="setlistDeckHeading">
+          <div class="module-header">
+            <div>
+              <h2 id="setlistDeckHeading" class="module-title">4. Sequenced Tracklist &amp; Cross-Domain Explainability Bridges</h2>
+              <p class="module-desc">
+                Pin favorite tracks to fixed slots, swap any position with alternative candidates, or audition adjacent Camelot transitions.
+              </p>
+            </div>
+          </div>
+
+          <div id="setlistTrackContainer" class="setlist-track-container" role="list"></div>
+        </section>
+      </section>
+    </main>
+
+    <!-- Slide-Down / Expandable Drawer: Live Qloo Insights API Connector + Export -->
+    <section id="qlooExportDrawer" class="console-drawer" hidden aria-labelledby="drawerHeading">
+      <div class="drawer-inner">
+        <div class="drawer-header">
+          <div>
+            <h2 id="drawerHeading" class="module-title">5. Live Qloo Insights API Connector &amp; Setlist Export Suite</h2>
+            <p class="module-desc">
+              Connect a live Qloo Taste AI key to query cross-domain entity affinities, or export your mastered setlist to M3U8, JSON, or Markdown liner notes.
+            </p>
+          </div>
+          <button type="button" id="closeDrawerBtn" class="btn btn-secondary btn-small">Close Console Drawer</button>
+        </div>
+
+        <div class="drawer-grid">
+          <!-- Left: Live Qloo API Connector -->
+          <div class="drawer-panel">
+            <h3 class="subpanel-title">Qloo Insights v2 Live Connector</h3>
+            <div class="form-group">
+              <label for="qlooEndpointSelect" class="control-label">Qloo API Endpoint Host</label>
+              <select id="qlooEndpointSelect" class="console-select">
+                <option value="https://hackathon.api.qloo.com">https://hackathon.api.qloo.com (Hackathon Sandbox)</option>
+                <option value="https://api.qloo.com">https://api.qloo.com (Production Insights v2)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="qlooApiKeyInput" class="control-label">Qloo X-Api-Key (Optional - stays in browser memory only)</label>
+              <input
+                type="password"
+                id="qlooApiKeyInput"
+                class="console-input"
+                placeholder="Paste Qloo API key to query live /v2/insights..."
+                autocomplete="off"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="control-label">Generated Qloo Insights Request Preview</label>
+              <pre id="qlooCurlPreview" class="code-preview"></pre>
+            </div>
+
+            <div class="drawer-action-row">
+              <button type="button" id="fetchQlooLiveBtn" class="btn btn-primary btn-small">
+                Query Live Qloo Affinities
+              </button>
+              <span id="qlooApiStatus" class="api-status-text" aria-live="polite">
+                Local deterministic 8D Qloo taste graph active.
+              </span>
+            </div>
+          </div>
+
+          <!-- Right: One-Click Playlist & Liner Notes Export -->
+          <div class="drawer-panel">
+            <div class="export-header-row">
+              <h3 class="subpanel-title">One-Click Setlist Export</h3>
+              <div class="export-format-tabs" role="tablist" aria-label="Export format">
+                <button type="button" class="export-tab active" data-format="m3u8">M3U8 Playlist</button>
+                <button type="button" class="export-tab" data-format="json">JSON Manifest</button>
+                <button type="button" class="export-tab" data-format="markdown">Markdown Liner Notes</button>
+              </div>
+            </div>
+
+            <textarea
+              id="exportPreviewTextarea"
+              class="export-textarea"
+              readonly
+              aria-label="Exported setlist content preview"
+            ></textarea>
+
+            <div class="drawer-action-row">
+              <button type="button" id="copyExportBtn" class="btn btn-secondary btn-small">Copy to Clipboard</button>
+              <button type="button" id="downloadExportBtn" class="btn btn-primary btn-small">Download Export File</button>
+              <span id="exportFeedbackText" class="api-status-text" aria-live="polite"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="console-footer" role="contentinfo">
+      <span>SetlistForge // Built for the Qloo Global Hackathon</span>
+      <span>36 Cultural Entities across 4 Domains // 8D Cosine Centroid + Camelot Wheel Beam Search + Web Audio Synth</span>
+    </footer>
+  </div>
+
+  <script src="engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
