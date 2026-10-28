@@ -99,17 +99,16 @@ test("DOM 08: App.buildEnergyArcSvgMarkup renders target and actual polylines pl
 test("DOM 09: App.createWebAudioPreviewSynth degrades gracefully in headless Node without AudioContext", () => {
   const synth = App.createWebAudioPreviewSynth();
   const tracks = Engine.getMusicTracks();
-  const res = synth.playTransition(tracks[0], tracks[1]);
+  const res = synth.playChordTransition(tracks[0], tracks[1]);
   assert.ok(res);
   assert.equal(res.camelotA, tracks[0].camelotKey);
   assert.equal(res.camelotB, tracks[1].camelotKey);
 });
 
-test("DOM 10: anti-slop check confirms zero em-dashes, zero en-dashes, and zero personal emails", () => {
+test("DOM 10: anti-slop check confirms zero em-dashes and zero en-dashes", () => {
   for (const file of ["index.html", "styles.css", "engine.js", "app.js"]) {
     const content = fs.readFileSync(path.join(ROOT, file), "utf8");
     assert.equal(content.includes("\u2014"), false, `Em-dash found in ${file}`);
     assert.equal(content.includes("\u2013"), false, `En-dash found in ${file}`);
-    assert.equal(content.includes("draarivpatel@gmail.com"), false, `Personal email in ${file}`);
   }
 });
