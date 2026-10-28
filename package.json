@@ -1,0 +1,21 @@
+{
+  "name": "setlist-forge",
+  "version": "1.0.0",
+  "description": "SetlistForge: Cross-Domain Music, Film & Sonic Mood Arc Planner for Qloo Taste AI",
+  "main": "engine.js",
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": [
+    "qloo",
+    "taste-ai",
+    "setlist-planner",
+    "camelot-wheel",
+    "harmonic-mixing",
+    "cross-domain-affinity",
+    "web-audio"
+  ],
+  "author": "draarivpatel-ui",
+  "license": "MIT",
+  "dependencies": {}
+}
