@@ -1,0 +1,23 @@
+[
+  { "do": "wait", "ms": 2000 },
+  { "do": "select", "selector": "#scenarioSelect", "value": "berlin_noir" },
+  { "do": "wait", "ms": 2000 },
+  { "do": "select", "selector": "#scenarioSelect", "value": "kyoto_cinema" },
+  { "do": "wait", "ms": 1800 },
+  { "do": "scrollTo", "selector": "#arcModuleHeading", "ms": 1600, "offset": 40 },
+  { "do": "wait", "ms": 1200 },
+  { "do": "click", "selector": ".arc-preset-btn[data-preset='late_night_noir']" },
+  { "do": "wait", "ms": 1800 },
+  { "do": "click", "selector": "#resequenceBtn" },
+  { "do": "wait", "ms": 1800 },
+  { "do": "scrollTo", "selector": "#svgArcHeading", "ms": 1600, "offset": 40 },
+  { "do": "wait", "ms": 1500 },
+  { "do": "click", "selector": "#auditionFullArcBtn" },
+  { "do": "wait", "ms": 2500 },
+  { "do": "scrollTo", "selector": "#setlistTrackContainer", "ms": 1600, "offset": 40 },
+  { "do": "wait", "ms": 2200 },
+  { "do": "click", "selector": "#toggleDrawerBtn" },
+  { "do": "wait", "ms": 2000 },
+  { "do": "click", "selector": "#copyExportBtn" },
+  { "do": "wait", "ms": 2000 }
+]

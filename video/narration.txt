@@ -1,0 +1,4 @@
+SetlistForge is a cross-domain music, film, and cultural taste setlist sequencer built for the Qloo Global Hackathon.
+Select seeds across films, books, venues, and music tracks to compute an eight-dimensional taste centroid and inspect the cultural bridge explaining why each track resonates with your non-music seeds.
+Next, choose an energy arc curve and run the beam-search sequencer, which balances seed affinity, target energy progression, and Camelot wheel harmonic key transitions across the entire setlist.
+You can audition any harmonic transition in the browser with the built-in Web Audio synthesizer, connect a live Qloo Insights API key, and export the finished setlist as M3U8, JSON, or liner notes.
