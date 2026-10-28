@@ -108,8 +108,8 @@ test("ENG 10: computeCamelotDistance scores identical, adjacent fifth, and relat
   assert.equal(fifth.wheelSteps, 1);
   assert.equal(wrap.wheelSteps, 1);
   assert.equal(rel.wheelSteps, 0);
-  assert.ok(same.harmonicScore >= fifth.harmonicScore);
-  assert.ok(fifth.harmonicScore > clash.harmonicScore);
+  assert.ok(same.compatibilityScore >= fifth.compatibilityScore);
+  assert.ok(fifth.compatibilityScore > clash.compatibilityScore);
 });
 
 test("ENG 11: computeTransitionScore combines Camelot key compatibility and BPM delta penalty", () => {
