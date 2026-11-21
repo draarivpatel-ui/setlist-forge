@@ -101,12 +101,6 @@ body {
   color: var(--ink-carbon);
 }
 
-.brand-subtitle {
-  margin: 2px 0 0;
-  font-size: 14px;
-  color: var(--ink-muted);
-}
-
 .header-actions {
   display: flex;
   flex-wrap: wrap;
@@ -239,12 +233,6 @@ body {
   font-size: 17px;
   font-weight: 700;
   color: var(--ink-carbon);
-}
-
-.module-desc {
-  margin: 3px 0 0;
-  font-size: 12.5px;
-  color: var(--ink-muted);
 }
 
 .meter-pill {
@@ -1055,4 +1043,38 @@ body {
   .drawer-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 10px 16px;
+  background-color: var(--harmonic-cobalt);
+  color: var(--bg-card, #FAF8F3);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 0 0 var(--radius-sm, 6px) 0;
+}
+.skip-link:focus-visible {
+  left: 0;
+}
+
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+.btn:focus-visible,
+.domain-tab:focus-visible,
+.arc-preset-btn:focus-visible,
+.export-tab:focus-visible,
+.catalog-toggle-btn:focus-visible,
+.pin-slot-btn:focus-visible,
+.swap-select:focus-visible,
+input[type="range"]:focus-visible,
+input[type="range"]::-webkit-slider-thumb {
+  outline: 2.5px solid var(--harmonic-cobalt);
+  outline-offset: 2px;
 }

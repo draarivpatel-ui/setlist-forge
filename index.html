@@ -3,22 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.qloo.com https://hackathon.api.qloo.com; object-src 'none'; base-uri 'none'; form-action 'none'" />
   <title>SetlistForge | Cross-Domain Music, Film &amp; Sonic Mood Arc Planner</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <a class="skip-link" href="#mainWorkspace">Skip to setlist console</a>
   <div class="console-shell">
     <!-- Top Mastering Console Header -->
     <header class="console-header" role="banner">
       <div class="brand-cluster">
         <div class="hardware-badge" aria-hidden="true">
           <span class="led-dot led-vermilion"></span>
-          <span class="model-code">Model SF-08 // Qloo Taste AI Mastering Console</span>
         </div>
         <h1 class="brand-title">SetlistForge</h1>
-        <p class="brand-subtitle">
-          Cross-domain music, film, literary, and sonic mood arc planner with harmonic Camelot sequencing
-        </p>
       </div>
 
       <div class="header-actions">
@@ -44,7 +42,7 @@
     </header>
 
     <!-- Main Two-Column Console Workspace -->
-    <main class="console-grid" role="main">
+    <main class="console-grid" role="main" id="mainWorkspace">
       <!-- Left Column: Cross-Domain Seed Conditioning & Energy Arc Faders -->
       <aside class="left-rack" aria-label="Seed conditioning and energy arc controls">
         <!-- Module 01: Cross-Domain Cultural Seed Conditioning -->
@@ -52,7 +50,6 @@
           <div class="module-header">
             <div>
               <h2 id="seedModuleHeading" class="module-title">1. Cross-Domain Seed Conditioning</h2>
-              <p class="module-desc">Select 1 to 4 films, books, sonic venues, or anchor tracks to shape the 8D taste centroid.</p>
             </div>
             <span id="seedCountBadge" class="meter-pill">3 / 4 seeds</span>
           </div>
@@ -71,12 +68,12 @@
 
           <!-- Catalog Filter & Search -->
           <div class="catalog-filter-bar">
-            <div class="domain-tabs" role="tablist" aria-label="Filter cultural catalog by domain">
-              <button type="button" class="domain-tab active" data-domain="ALL" role="tab" aria-selected="true">All (36)</button>
-              <button type="button" class="domain-tab" data-domain="Films &amp; Directors" role="tab" aria-selected="false">Films (6)</button>
-              <button type="button" class="domain-tab" data-domain="Books &amp; Essays" role="tab" aria-selected="false">Books (6)</button>
-              <button type="button" class="domain-tab" data-domain="Sonic Venues &amp; Aesthetics" role="tab" aria-selected="false">Venues (6)</button>
-              <button type="button" class="domain-tab" data-domain="Music Tracks" role="tab" aria-selected="false">Tracks (18)</button>
+            <div class="domain-tabs" role="group" aria-label="Filter cultural catalog by domain">
+              <button type="button" class="domain-tab active" data-domain="ALL" aria-pressed="true">All (36)</button>
+              <button type="button" class="domain-tab" data-domain="Films &amp; Directors" aria-pressed="false">Films (6)</button>
+              <button type="button" class="domain-tab" data-domain="Books &amp; Essays" aria-pressed="false">Books (6)</button>
+              <button type="button" class="domain-tab" data-domain="Sonic Venues &amp; Aesthetics" aria-pressed="false">Venues (6)</button>
+              <button type="button" class="domain-tab" data-domain="Music Tracks" aria-pressed="false">Tracks (18)</button>
             </div>
             <input
               type="search"
@@ -96,17 +93,16 @@
           <div class="module-header">
             <div>
               <h2 id="arcModuleHeading" class="module-title">2. Energy Arc &amp; Optimizer Faders</h2>
-              <p class="module-desc">Shape the target narrative envelope and adjust beam-search objective weights.</p>
             </div>
             <span id="activeArcBadge" class="meter-pill pill-vermilion">Slow Burn Crescendo</span>
           </div>
 
           <!-- Arc Preset Buttons -->
           <div class="arc-preset-grid" id="arcPresetButtons" role="group" aria-label="Energy arc curve presets">
-            <button type="button" class="arc-preset-btn active" data-preset="slow_burn">Slow Burn Crescendo</button>
-            <button type="button" class="arc-preset-btn" data-preset="late_night_noir">Late-Night Noir Wave</button>
-            <button type="button" class="arc-preset-btn" data-preset="peak_hour_festival">Peak-Hour Festival Arc</button>
-            <button type="button" class="arc-preset-btn" data-preset="warm_acoustic_dawn">Warm Acoustic Dawn</button>
+            <button type="button" class="arc-preset-btn active" data-preset="slow_burn" aria-pressed="true">Slow Burn Crescendo</button>
+            <button type="button" class="arc-preset-btn" data-preset="late_night_noir" aria-pressed="false">Late-Night Noir Wave</button>
+            <button type="button" class="arc-preset-btn" data-preset="peak_hour_festival" aria-pressed="false">Peak-Hour Festival Arc</button>
+            <button type="button" class="arc-preset-btn" data-preset="warm_acoustic_dawn" aria-pressed="false">Warm Acoustic Dawn</button>
           </div>
 
           <!-- 6-Point Spline Sliders -->
@@ -227,9 +223,6 @@
           <div class="module-header">
             <div>
               <h2 id="svgArcHeading" class="module-title">3. Energy &amp; Harmonic Transition Curve</h2>
-              <p class="module-desc">
-                Signal Vermilion plots target energy; Harmonic Cobalt plots actual track energy and Camelot key bridges. Click any transition badge to audition chords.
-              </p>
             </div>
             <div class="chart-legend">
               <span class="legend-item"><span class="legend-swatch swatch-vermilion"></span>Target Arc</span>
@@ -263,9 +256,6 @@
           <div class="module-header">
             <div>
               <h2 id="setlistDeckHeading" class="module-title">4. Sequenced Tracklist &amp; Cross-Domain Explainability Bridges</h2>
-              <p class="module-desc">
-                Pin favorite tracks to fixed slots, swap any position with alternative candidates, or audition adjacent Camelot transitions.
-              </p>
             </div>
           </div>
 
@@ -280,9 +270,6 @@
         <div class="drawer-header">
           <div>
             <h2 id="drawerHeading" class="module-title">5. Live Qloo Insights API Connector &amp; Setlist Export Suite</h2>
-            <p class="module-desc">
-              Connect a live Qloo Taste AI key to query cross-domain entity affinities, or export your mastered setlist to M3U8, JSON, or Markdown liner notes.
-            </p>
           </div>
           <button type="button" id="closeDrawerBtn" class="btn btn-secondary btn-small">Close Console Drawer</button>
         </div>
@@ -329,10 +316,11 @@
           <div class="drawer-panel">
             <div class="export-header-row">
               <h3 class="subpanel-title">One-Click Setlist Export</h3>
-              <div class="export-format-tabs" role="tablist" aria-label="Export format">
-                <button type="button" class="export-tab active" data-format="m3u8">M3U8 Playlist</button>
-                <button type="button" class="export-tab" data-format="json">JSON Manifest</button>
-                <button type="button" class="export-tab" data-format="markdown">Markdown Liner Notes</button>
+              <div class="export-format-tabs" role="group" aria-label="Export format">
+                <button type="button" class="export-tab active" data-format="m3u8" aria-pressed="true">M3U8 Playlist</button>
+                <button type="button" class="export-tab" data-format="json" aria-pressed="false">JSON Manifest</button>
+                <button type="button" class="export-tab" data-format="markdown" aria-pressed="false">Markdown Liner Notes</button>
+                <button type="button" class="export-tab" data-format="csv" aria-pressed="false">CSV Tracksheet</button>
               </div>
             </div>
 

@@ -54,11 +54,12 @@
   }
 
   function escapeHtml(str) {
-    return String(str || "")
+    return String(str == null ? "" : str)
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
 
   function buildEnergyArcSvgMarkup(setlistResult) {
@@ -164,9 +165,10 @@
       const cx = xForIndex(i);
       const cyTarget = yForEnergy(item.targetEnergy);
       const cyActual = yForEnergy(item.actualEnergy);
-      const shortTitle = item.track.title.length > 14
-        ? item.track.title.slice(0, 12) + ".."
-        : item.track.title;
+      const rawTitle = (item.track && item.track.title) || "";
+      const shortTitle = rawTitle.length > 14
+        ? rawTitle.slice(0, 12) + ".."
+        : rawTitle;
 
       parts.push(
         '<circle cx="' + cx + '" cy="' + cyTarget + '" r="4" fill="#C84B31" />'
@@ -176,7 +178,7 @@
         '<g class="svg-track-node" data-slot-idx="' + i + '" style="cursor:pointer">' +
         '<circle cx="' + cx + '" cy="' + cyActual + '" r="6.5" fill="#FAF8F3" stroke="#2B4C7E" stroke-width="2.5" />' +
         '<text x="' + cx + '" y="' + (padTop + plotH + 18) + '" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="700" fill="#151514">#' +
-        item.position + ' (' + item.track.camelotKey + ')</text>' +
+        escapeHtml(item.position) + ' (' + escapeHtml(item.track.camelotKey) + ')</text>' +
         '<text x="' + cx + '" y="' + (padTop + plotH + 33) + '" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#52504A">' +
         escapeHtml(shortTitle) + '</text>' +
         '</g>'
@@ -409,11 +411,11 @@
           return true;
         }
         const hay = (
-          entity.title + " " +
-          entity.creator + " " +
-          entity.domain + " " +
-          entity.camelotKey + " " +
-          entity.tags.join(" ")
+          (entity.title || "") + " " +
+          (entity.creator || "") + " " +
+          (entity.domain || "") + " " +
+          (entity.camelotKey || "") + " " +
+          (entity.tags || []).join(" ")
         ).toLowerCase();
         return hay.indexOf(q) !== -1;
       });
@@ -425,8 +427,8 @@
             '<div class="catalog-item-main">' +
               '<span class="catalog-item-title">' + escapeHtml(entity.title) + ' - ' + escapeHtml(entity.creator) + '</span>' +
               '<span class="catalog-item-sub">' +
-                escapeHtml(entity.domain) + ' // ' + escapeHtml(entity.camelotKey) + ' (' + entity.bpm + ' BPM) // ' +
-                escapeHtml(entity.tags.slice(0, 3).join(", ")) +
+                escapeHtml(entity.domain) + ' // ' + escapeHtml(entity.camelotKey) + ' (' + escapeHtml(entity.bpm) + ' BPM) // ' +
+                escapeHtml((entity.tags || []).slice(0, 3).join(", ")) +
               '</span>' +
             '</div>' +
             '<button type="button" class="catalog-toggle-btn ' + (isSelected ? "active" : "") + '" data-toggle-seed="' + escapeHtml(entity.id) + '">' +
@@ -493,13 +495,13 @@
             const sel = candidate.id === trk.id ? " selected" : "";
             return (
               '<option value="' + escapeHtml(candidate.id) + '"' + sel + '>' +
-              escapeHtml(candidate.title) + " (" + candidate.camelotKey + ", " + candidate.bpm + " BPM)" +
+              escapeHtml(candidate.title) + " (" + escapeHtml(candidate.camelotKey) + ", " + escapeHtml(candidate.bpm) + " BPM)" +
               "</option>"
             );
           })
           .join("");
 
-        const seedBridgePills = item.bridge.seedBridges.map(function (sb) {
+        const seedBridgePills = ((item.bridge && item.bridge.seedBridges) || []).map(function (sb) {
           return (
             '<span class="bridge-pill">' +
               escapeHtml(sb.seedTitle) + ": " + Math.round(sb.similarity * 100) + "% (" +
@@ -512,13 +514,13 @@
           '<article class="track-card ' + (item.isPinned ? "is-pinned" : "") + '" role="listitem" data-slot-card="' + i + '">' +
             '<div class="track-card-top">' +
               '<div class="track-title-cluster">' +
-                '<span class="track-slot-num">0' + item.position + '</span>' +
+                '<span class="track-slot-num">' + String(item.position).padStart(2, "0") + '</span>' +
                 '<h3 class="track-name">' + escapeHtml(trk.title) + '</h3>' +
-                '<span class="track-creator">by ' + escapeHtml(trk.creator) + ' (' + trk.year + ' // ' + formatTrackClock(trk.durationSec) + ')</span>' +
+                '<span class="track-creator">by ' + escapeHtml(trk.creator) + ' (' + escapeHtml(trk.year) + ' // ' + formatTrackClock(trk.durationSec) + ')</span>' +
               '</div>' +
               '<div class="track-badges">' +
                 '<span class="camelot-badge">' + escapeHtml(trk.camelotKey) + " // " + escapeHtml(musicalKeyLabel) + '</span>' +
-                '<span class="bpm-badge">' + trk.bpm + ' BPM</span>' +
+                '<span class="bpm-badge">' + escapeHtml(trk.bpm) + ' BPM</span>' +
                 '<span class="affinity-badge">' + affPct + '% Seed Match</span>' +
               '</div>' +
             '</div>' +
@@ -535,7 +537,7 @@
             '</div>' +
 
             '<div class="explainability-box">' +
-              '<div class="explainability-headline">Cross-Domain Bridge: ' + escapeHtml(item.bridge.headline) + '</div>' +
+              '<div class="explainability-headline">Cross-Domain Bridge: ' + escapeHtml(item.bridge && item.bridge.headline) + '</div>' +
               '<div class="seed-bridge-pills">' + seedBridgePills + '</div>' +
             '</div>' +
 
@@ -591,28 +593,78 @@
           exportPreviewTextarea.value = Engine.exportSetlistJSON(state.currentResult);
         } else if (state.exportFormat === "markdown") {
           exportPreviewTextarea.value = Engine.exportSetlistMarkdown(state.currentResult);
+        } else if (state.exportFormat === "csv") {
+          exportPreviewTextarea.value = Engine.exportSetlistCSV(state.currentResult);
         } else {
           exportPreviewTextarea.value = Engine.exportSetlistM3U8(state.currentResult);
         }
       }
     }
 
-    function recomputeAndRender() {
-      const result = Engine.sequenceSetlist({
-        seedIds: state.seedIds,
-        targetLength: state.targetLength,
-        arcPresetId: state.arcPresetId,
-        customControlPoints: state.controlPoints,
-        pinnedTracks: state.pinnedTracks,
-        weights: state.weights
-      });
-      state.currentResult = result;
+    function focusKeyOf(el) {
+      if (!el || el === document.body || el === document.documentElement) {
+        return null;
+      }
+      if (el.id) {
+        return "#" + el.id;
+      }
+      const attrs = [
+        "data-pin-slot", "data-auto-swap", "data-swap-select", "data-audition-transition",
+        "data-toggle-seed", "data-format", "data-preset", "data-domain", "data-stage"
+      ];
+      for (const attr of attrs) {
+        const v = typeof el.getAttribute === "function" ? el.getAttribute(attr) : null;
+        if (v != null) {
+          return "[" + attr + "=\"" + String(v).replace(/"/g, '\\"') + "\"]";
+        }
+      }
+      return null;
+    }
 
-      renderSelectedSeedsAndCentroid(result.seedProfile);
-      renderCatalogList();
-      renderTelemetryAndSvg(result);
-      renderSetlistDeck(result);
-      updateDrawerPreviews();
+    function withFocusPreserved(fn) {
+      const key = focusKeyOf(document.activeElement);
+      fn();
+      if (key) {
+        const el = document.querySelector(key);
+        if (el && typeof el.focus === "function") {
+          el.focus();
+        }
+      }
+    }
+
+    function renderCurrentResult() {
+      const result = state.currentResult;
+      if (!result) {
+        return;
+      }
+      withFocusPreserved(function () {
+        renderSelectedSeedsAndCentroid(result.seedProfile);
+        renderCatalogList();
+        renderTelemetryAndSvg(result);
+        renderSetlistDeck(result);
+        updateDrawerPreviews();
+      });
+    }
+
+    function recomputeAndRender() {
+      let result;
+      try {
+        result = Engine.sequenceSetlist({
+          seedIds: state.seedIds,
+          targetLength: state.targetLength,
+          arcPresetId: state.arcPresetId,
+          customControlPoints: state.controlPoints,
+          pinnedTracks: state.pinnedTracks,
+          weights: state.weights
+        });
+      } catch (err) {
+        if (synthStatusText) {
+          synthStatusText.textContent = "Sequencer could not run: " + (err && err.message ? err.message : err);
+        }
+        return;
+      }
+      state.currentResult = result;
+      renderCurrentResult();
     }
 
     function triggerTransitionAudition(transitionIdx) {
@@ -655,7 +707,9 @@
           trackLengthValue.textContent = state.targetLength + " Tracks";
         }
         document.querySelectorAll(".arc-preset-btn").forEach(function (btn) {
-          btn.classList.toggle("active", btn.getAttribute("data-preset") === state.arcPresetId);
+          const active = btn.getAttribute("data-preset") === state.arcPresetId;
+          btn.classList.toggle("active", active);
+          btn.setAttribute("aria-pressed", active ? "true" : "false");
         });
         syncSplineSlidersUI();
         recomputeAndRender();
@@ -687,6 +741,9 @@
         qlooExportDrawer.setAttribute("hidden", "");
         if (toggleDrawerBtn) {
           toggleDrawerBtn.setAttribute("aria-expanded", "false");
+          if (qlooExportDrawer.contains(document.activeElement)) {
+            toggleDrawerBtn.focus();
+          }
         }
       });
     }
@@ -715,7 +772,7 @@
         document.querySelectorAll(".domain-tab").forEach(function (t) {
           const active = t === tab;
           t.classList.toggle("active", active);
-          t.setAttribute("aria-selected", active ? "true" : "false");
+          t.setAttribute("aria-pressed", active ? "true" : "false");
         });
         renderCatalogList();
       });
@@ -760,6 +817,7 @@
         state.controlPoints = Engine.ENERGY_ARC_PRESETS[presetId].controlPoints.slice();
         document.querySelectorAll(".arc-preset-btn").forEach(function (b) {
           b.classList.toggle("active", b === btn);
+          b.setAttribute("aria-pressed", b === btn ? "true" : "false");
         });
         syncSplineSlidersUI();
         recomputeAndRender();
@@ -778,6 +836,7 @@
         }
         document.querySelectorAll(".arc-preset-btn").forEach(function (b) {
           b.classList.remove("active");
+          b.setAttribute("aria-pressed", "false");
         });
         recomputeAndRender();
       });
@@ -799,15 +858,24 @@
         if (trackLengthValue) {
           trackLengthValue.textContent = state.targetLength + " Tracks";
         }
+        Object.keys(state.pinnedTracks).forEach(function (slotKey) {
+          if (Number(slotKey) >= state.targetLength) {
+            delete state.pinnedTracks[slotKey];
+          }
+        });
         recomputeAndRender();
       });
     }
 
     function updateWeightsFromSliders() {
-      const a = weightAffinitySlider ? Number(weightAffinitySlider.value) / 100 : 0.40;
-      const e = weightEnergySlider ? Number(weightEnergySlider.value) / 100 : 0.34;
-      const h = weightHarmonicSlider ? Number(weightHarmonicSlider.value) / 100 : 0.26;
-      const sum = a + e + h || 1;
+      const pct = function (slider, def) {
+        const v = slider ? Number(slider.value) : NaN;
+        return Number.isFinite(v) ? v / 100 : def;
+      };
+      const a = pct(weightAffinitySlider, 0.40);
+      const e = pct(weightEnergySlider, 0.34);
+      const h = pct(weightHarmonicSlider, 0.26);
+      const sum = a + e + h > 0 ? a + e + h : 1;
       state.weights = {
         affinity: Engine.roundTo(a / sum, 2),
         energyFit: Engine.roundTo(e / sum, 2),
@@ -857,7 +925,7 @@
           return;
         }
         const node = ev.target.closest("[data-slot-idx]");
-        if (node) {
+        if (node && state.currentResult && Array.isArray(state.currentResult.transitions)) {
           const slotIdx = Number(node.getAttribute("data-slot-idx"));
           const nextIdx = Math.min(slotIdx, state.currentResult.transitions.length - 1);
           triggerTransitionAudition(Math.max(0, nextIdx));
@@ -883,9 +951,14 @@
         const autoSwapBtn = ev.target.closest("[data-auto-swap]");
         if (autoSwapBtn) {
           const slotIdx = Number(autoSwapBtn.getAttribute("data-auto-swap"));
-          const swapped = Engine.swapSetlistTrack(state.currentResult, slotIdx, null);
-          state.pinnedTracks[slotIdx] = swapped.tracks[slotIdx].track.id;
-          recomputeAndRender();
+          try {
+            state.currentResult = Engine.swapSetlistTrack(state.currentResult, slotIdx, null);
+            renderCurrentResult();
+          } catch (err) {
+            if (synthStatusText) {
+              synthStatusText.textContent = "Swap failed: " + (err && err.message ? err.message : err);
+            }
+          }
           return;
         }
 
@@ -903,8 +976,15 @@
         }
         const slotIdx = Number(selectEl.getAttribute("data-swap-select"));
         const chosenTrackId = selectEl.value;
-        state.pinnedTracks[slotIdx] = chosenTrackId;
-        recomputeAndRender();
+        try {
+          state.currentResult = Engine.swapSetlistTrack(state.currentResult, slotIdx, chosenTrackId);
+          renderCurrentResult();
+        } catch (err) {
+          if (synthStatusText) {
+            synthStatusText.textContent = "Swap failed: " + (err && err.message ? err.message : err);
+          }
+          renderCurrentResult();
+        }
       });
     }
 
@@ -942,14 +1022,16 @@
             throw new Error("HTTP " + response.status);
           }
           const data = await response.json();
-          const count = data && data.results && Array.isArray(data.results.entities)
-            ? data.results.entities.length
-            : 0;
+          const entities = data && data.results && Array.isArray(data.results.entities)
+            ? data.results.entities
+            : [];
+          const names = entities.slice(0, 3).map(function (e) { return e && e.name; }).filter(Boolean);
           if (qlooApiStatus) {
             qlooApiStatus.textContent =
-              "Live Qloo Insights connected (" + count + " entities returned). Centroid synchronized.";
+              "Live Qloo Insights connected: " + entities.length + " related entities returned" +
+              (names.length ? " (top: " + names.join(", ") + ")" : "") +
+              ". Local deterministic centroid unchanged.";
           }
-          recomputeAndRender();
         } catch (err) {
           if (qlooApiStatus) {
             qlooApiStatus.textContent =
@@ -964,6 +1046,7 @@
         state.exportFormat = tab.getAttribute("data-format") || "m3u8";
         document.querySelectorAll(".export-tab").forEach(function (t) {
           t.classList.toggle("active", t === tab);
+          t.setAttribute("aria-pressed", t === tab ? "true" : "false");
         });
         updateDrawerPreviews();
       });
@@ -972,17 +1055,24 @@
     if (copyExportBtn && exportPreviewTextarea) {
       copyExportBtn.addEventListener("click", function () {
         if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
-          navigator.clipboard.writeText(exportPreviewTextarea.value);
-        }
-        if (exportFeedbackText) {
-          exportFeedbackText.textContent = "Copied " + state.exportFormat + " manifest to clipboard.";
+          navigator.clipboard.writeText(exportPreviewTextarea.value).then(function () {
+            if (exportFeedbackText) {
+              exportFeedbackText.textContent = "Copied " + state.exportFormat + " manifest to clipboard.";
+            }
+          }).catch(function () {
+            if (exportFeedbackText) {
+              exportFeedbackText.textContent = "Copy was blocked; select the preview text manually.";
+            }
+          });
+        } else if (exportFeedbackText) {
+          exportFeedbackText.textContent = "Clipboard unavailable; select the preview text manually.";
         }
       });
     }
 
     if (downloadExportBtn && exportPreviewTextarea) {
       downloadExportBtn.addEventListener("click", function () {
-        const extMap = { m3u8: "m3u8", json: "json", markdown: "md" };
+        const extMap = { m3u8: "m3u8", json: "json", markdown: "md", csv: "csv" };
         const ext = extMap[state.exportFormat] || "txt";
         const blob = new Blob([exportPreviewTextarea.value], { type: "text/plain;charset=utf-8" });
         const url = URL.createObjectURL(blob);

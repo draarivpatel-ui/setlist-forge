@@ -1058,9 +1058,31 @@
     return roundTo(clamp01(dot / (Math.sqrt(magA) * Math.sqrt(magB))), 4);
   }
 
+  function centroidOfSeeds(seeds) {
+    const centroid = {};
+    for (let d = 0; d < TASTE_DIMENSIONS.length; d += 1) {
+      const dimKey = TASTE_DIMENSIONS[d].key;
+      let sum = 0;
+      for (let s = 0; s < seeds.length; s += 1) {
+        const vec = seeds[s] && seeds[s].vector;
+        sum += clamp01(vec ? vec[dimKey] : 0);
+      }
+      centroid[dimKey] = roundTo(sum / seeds.length, 4);
+    }
+    return centroid;
+  }
+
   function computeSeedCentroid(seedIds, customCatalog) {
     const catalog = getCatalog(customCatalog);
-    const validIds = Array.isArray(seedIds) ? seedIds.slice(0, 4) : [];
+    const rawIds = Array.isArray(seedIds) ? seedIds : [];
+    const seenIds = new Set();
+    const validIds = [];
+    for (let i = 0; i < rawIds.length && validIds.length < 4; i += 1) {
+      if (typeof rawIds[i] === "string" && !seenIds.has(rawIds[i])) {
+        seenIds.add(rawIds[i]);
+        validIds.push(rawIds[i]);
+      }
+    }
     const seeds = [];
     for (let i = 0; i < validIds.length; i += 1) {
       const entity = getEntityById(validIds[i], catalog);
@@ -1073,15 +1095,7 @@
       throw new Error("At least 1 valid cultural seed is required to compute a taste centroid.");
     }
 
-    const centroid = {};
-    for (let d = 0; d < TASTE_DIMENSIONS.length; d += 1) {
-      const dimKey = TASTE_DIMENSIONS[d].key;
-      let sum = 0;
-      for (let s = 0; s < seeds.length; s += 1) {
-        sum += clamp01(seeds[s].vector[dimKey]);
-      }
-      centroid[dimKey] = roundTo(sum / seeds.length, 4);
-    }
+    const centroid = centroidOfSeeds(seeds);
 
     const rankedDimensions = TASTE_DIMENSIONS.map(function (dim) {
       return {
@@ -1246,12 +1260,15 @@
       vectorContinuity: vectorContinuity,
       bpmDelta: bpmDelta,
       camelotInfo: camelotInfo,
-      transitionLabel: qualityTier + " (" + trackA.camelotKey + " -> " + trackB.camelotKey + ", dBPM " + bpmDelta + ")"
+      transitionLabel: qualityTier + " (" + (trackA.camelotKey || "?") + " -> " + (trackB.camelotKey || "?") + ", dBPM " + bpmDelta + ")"
     };
   }
 
   function interpolateEnergyCurve(controlPoints, numTracks) {
-    const count = Math.max(6, Math.min(12, Math.round(numTracks || 8)));
+    const numericCount = Number(numTracks);
+    const count = Number.isFinite(numericCount) && numericCount > 0
+      ? Math.max(6, Math.min(12, Math.round(numericCount)))
+      : 8;
     const points = Array.isArray(controlPoints) && controlPoints.length >= 2
       ? controlPoints.map(clamp01)
       : ENERGY_ARC_PRESETS.slow_burn.controlPoints.slice();
@@ -1282,14 +1299,13 @@
       };
     }
 
-    const effectiveCentroid = centroid || computeSeedCentroid(
-      seeds.map(function (s) { return s.id; })
-    ).centroid;
+    const trackVector = track.vector || {};
+    const effectiveCentroid = centroid || centroidOfSeeds(seeds);
 
-    const affinityScore = cosineSimilarity(track.vector, effectiveCentroid);
+    const affinityScore = cosineSimilarity(trackVector, effectiveCentroid);
 
     const dimContributions = TASTE_DIMENSIONS.map(function (dim) {
-      const trackVal = clamp01(track.vector[dim.key]);
+      const trackVal = clamp01(trackVector[dim.key]);
       const seedVal = clamp01(effectiveCentroid[dim.key]);
       const closeness = 1 - Math.abs(trackVal - seedVal);
       const strength = roundTo(trackVal * seedVal * closeness, 4);
@@ -1307,20 +1323,29 @@
 
     const topDims = dimContributions.slice(0, 3);
 
-    const seedBridges = seeds.map(function (seed) {
-      const seedSim = cosineSimilarity(track.vector, seed.vector);
+    const seedBridges = seeds.filter(function (seed) {
+      return seed && seed.id;
+    }).map(function (seed) {
+      const seedVector = (seed && seed.vector) || {};
+      const seedSim = cosineSimilarity(trackVector, seedVector);
       const bestShared = TASTE_DIMENSIONS.map(function (dim) {
         return {
           key: dim.key,
           shortLabel: dim.shortLabel,
           label: dim.label,
-          score: roundTo(clamp01(track.vector[dim.key]) * clamp01(seed.vector[dim.key]), 4)
+          score: roundTo(clamp01(trackVector[dim.key]) * clamp01(seedVector[dim.key]), 4)
         };
       }).sort(function (a, b) {
         return b.score - a.score;
       }).slice(0, 2);
 
       const dimPhrase = bestShared.map(function (d) { return d.shortLabel.toLowerCase(); }).join(" and ");
+      const domainNoun = {
+        "Films & Directors": "film",
+        "Books & Essays": "book",
+        "Sonic Venues & Aesthetics": "sonic venue",
+        "Music Tracks": "track"
+      }[seed.domain] || "seed";
       return {
         seedId: seed.id,
         seedTitle: seed.title,
@@ -1329,7 +1354,7 @@
         similarity: seedSim,
         sharedTraits: bestShared.map(function (d) { return d.shortLabel; }),
         explanation:
-          "Bridges " + seed.domain.replace(/s$/, "") + " \"" + seed.title + "\" (" + seed.creator + ") via shared " +
+          "Bridges " + domainNoun + " \"" + seed.title + "\" (" + seed.creator + ") via shared " +
           dimPhrase + " (" + Math.round(seedSim * 100) + "% resonance)."
       };
     }).sort(function (a, b) {
@@ -1358,30 +1383,54 @@
       : ["flm-in-the-mood-for-love", "bok-after-dark-murakami", "ven-kyoto-jazz-kissa"];
 
     const seedProfile = computeSeedCentroid(seedIds, catalog);
-    const targetLength = Math.max(6, Math.min(12, Math.round(opts.targetLength || 8)));
+    const rawTargetLength = Number(opts.targetLength);
+    const targetLength = Number.isFinite(rawTargetLength)
+      ? Math.max(6, Math.min(12, Math.round(rawTargetLength)))
+      : 8;
 
-    const preset = ENERGY_ARC_PRESETS[opts.arcPresetId] || ENERGY_ARC_PRESETS.slow_burn;
-    const controlPoints = opts.arcPresetId === "custom" && Array.isArray(opts.customControlPoints)
-      ? opts.customControlPoints
-      : (Array.isArray(opts.customControlPoints) && !opts.arcPresetId
-          ? opts.customControlPoints
-          : preset.controlPoints);
+    const useCustomPoints = Array.isArray(opts.customControlPoints) &&
+      (opts.arcPresetId === "custom" || !opts.arcPresetId);
+    const preset = useCustomPoints
+      ? ENERGY_ARC_PRESETS.custom
+      : (ENERGY_ARC_PRESETS[opts.arcPresetId] || ENERGY_ARC_PRESETS.slow_burn);
+    const controlPoints = useCustomPoints ? opts.customControlPoints : preset.controlPoints;
 
     const targetEnergies = interpolateEnergyCurve(controlPoints, targetLength);
 
-    const weights = Object.assign(
-      { affinity: 0.40, energyFit: 0.34, harmonic: 0.26 },
-      opts.weights || {}
-    );
+    const weightOr = function (value, fallback) {
+      return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : fallback;
+    };
+    const rawWeights = opts.weights || {};
+    const weights = {
+      affinity: weightOr(rawWeights.affinity, 0.40),
+      energyFit: weightOr(rawWeights.energyFit, 0.34),
+      harmonic: weightOr(rawWeights.harmonic, 0.26)
+    };
+    if (weights.affinity + weights.energyFit + weights.harmonic <= 0) {
+      throw new Error("At least one positive sequencer weight is required.");
+    }
 
     const excludedSet = new Set(Array.isArray(opts.excludedTrackIds) ? opts.excludedTrackIds : []);
-    const pinnedTracks = opts.pinnedTracks || {};
-    const pinnedIdSet = new Set();
-    Object.keys(pinnedTracks).forEach(function (slotKey) {
+    const rawPinned = opts.pinnedTracks && typeof opts.pinnedTracks === "object" ? opts.pinnedTracks : {};
+    const pinnedTracks = {};
+    const pinnedSlotById = {};
+    Object.keys(rawPinned).forEach(function (slotKey) {
       const slotIdx = Number(slotKey);
-      const trackId = pinnedTracks[slotKey];
-      if (slotIdx >= 0 && slotIdx < targetLength && typeof trackId === "string") {
-        pinnedIdSet.add(trackId);
+      const trackId = rawPinned[slotKey];
+      if (!Number.isInteger(slotIdx) || slotIdx < 0 || slotIdx >= targetLength || typeof trackId !== "string") {
+        return;
+      }
+      if (pinnedSlotById[trackId] !== undefined && pinnedSlotById[trackId] !== slotIdx) {
+        throw new Error('Track "' + trackId + '" is pinned to more than one slot.');
+      }
+      pinnedSlotById[trackId] = slotIdx;
+      pinnedTracks[slotIdx] = trackId;
+    });
+    const pinnedIdSet = new Set(Object.keys(pinnedSlotById));
+    pinnedIdSet.forEach(function (trackId) {
+      const entity = getEntityById(trackId, catalog);
+      if (!entity || entity.domain !== "Music Tracks") {
+        throw new Error('Pinned track "' + trackId + '" was not found in the music track catalog.');
       }
     });
 
@@ -1567,29 +1616,64 @@
     if (!currentResult || !Array.isArray(currentResult.tracks)) {
       throw new Error("A valid current setlist result is required to swap a track.");
     }
-    if (slotIndex < 0 || slotIndex >= currentResult.tracks.length) {
+    if (!currentResult.seedProfile || !Array.isArray(currentResult.seedProfile.seedIds) ||
+        !currentResult.seedProfile.centroid || !Array.isArray(currentResult.targetEnergies)) {
+      throw new Error("Setlist result is missing its seed profile or energy arc; cannot swap.");
+    }
+    if (!Number.isInteger(slotIndex) || slotIndex < 0 || slotIndex >= currentResult.tracks.length) {
       throw new Error("slotIndex out of bounds for setlist.");
     }
 
     const catalog = getCatalog(options && options.catalog);
     const allTracks = getMusicTracks(catalog);
-    const currentIds = new Set(currentResult.tracks.map(function (t) { return t.track.id; }));
-    const outgoingTrackId = currentResult.tracks[slotIndex].track.id;
+    const currentIds = new Set(currentResult.tracks.map(function (t) { return t.track && t.track.id; }));
+    const outgoing = currentResult.tracks[slotIndex];
+    if (!outgoing || !outgoing.track || !outgoing.track.id) {
+      throw new Error("Setlist slot " + slotIndex + " does not contain a track to swap.");
+    }
+    const outgoingTrackId = outgoing.track.id;
+
+    if (replacementTrackId != null) {
+      const entity = getEntityById(replacementTrackId, catalog);
+      if (!entity || entity.domain !== "Music Tracks") {
+        throw new Error('Replacement track "' + replacementTrackId + '" was not found in the music track catalog.');
+      }
+      if (currentIds.has(replacementTrackId) && replacementTrackId !== outgoingTrackId) {
+        throw new Error('Replacement track "' + replacementTrackId + '" is already in the setlist.');
+      }
+    }
 
     let chosenId = replacementTrackId;
     if (!chosenId) {
-      // Pick highest-scoring unused track for this slot
+      // Pick highest-scoring unused, non-excluded track for this slot
       const targetE = currentResult.targetEnergies[slotIndex];
       const prevTrack = slotIndex > 0 ? currentResult.tracks[slotIndex - 1].track : null;
       const nextTrack = slotIndex < currentResult.tracks.length - 1
         ? currentResult.tracks[slotIndex + 1].track
         : null;
+      const excludedIds = new Set(
+        options && Array.isArray(options.excludedTrackIds) ? options.excludedTrackIds : []
+      );
+      const weightOr = function (value, fallback) {
+        return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : fallback;
+      };
+      const rawWeights = (options && options.weights) || {};
+      const weights = {
+        affinity: weightOr(rawWeights.affinity, 0.40),
+        energyFit: weightOr(rawWeights.energyFit, 0.34),
+        harmonic: weightOr(rawWeights.harmonic, 0.26)
+      };
+      if (weights.affinity + weights.energyFit + weights.harmonic <= 0) {
+        weights.affinity = 0.40;
+        weights.energyFit = 0.34;
+        weights.harmonic = 0.26;
+      }
 
       let bestCandidate = null;
       let bestScore = -Infinity;
       for (let i = 0; i < allTracks.length; i += 1) {
         const candidate = allTracks[i];
-        if (currentIds.has(candidate.id) || candidate.id === outgoingTrackId) {
+        if (currentIds.has(candidate.id) || candidate.id === outgoingTrackId || excludedIds.has(candidate.id)) {
           continue;
         }
         const affinity = cosineSimilarity(candidate.vector, currentResult.seedProfile.centroid);
@@ -1597,7 +1681,7 @@
         const eScore = 1 - Math.min(1, Math.pow(energy - targetE, 2) * 4);
         const prevScore = prevTrack ? computeTransitionScore(prevTrack, candidate).totalScore : 0.85;
         const nextScore = nextTrack ? computeTransitionScore(candidate, nextTrack).totalScore : 0.85;
-        const combined = 0.40 * affinity + 0.34 * eScore + 0.26 * ((prevScore + nextScore) / 2);
+        const combined = weights.affinity * affinity + weights.energyFit * eScore + weights.harmonic * ((prevScore + nextScore) / 2);
         if (combined > bestScore) {
           bestScore = combined;
           bestCandidate = candidate;
@@ -1611,10 +1695,11 @@
 
     const nextPinned = {};
     for (let i = 0; i < currentResult.tracks.length; i += 1) {
-      nextPinned[i] = i === slotIndex ? chosenId : currentResult.tracks[i].track.id;
+      const entry = currentResult.tracks[i];
+      nextPinned[i] = i === slotIndex ? chosenId : (entry.track && entry.track.id);
     }
 
-    return sequenceSetlist(
+    const result = sequenceSetlist(
       Object.assign({}, options || {}, {
         seedIds: currentResult.seedProfile.seedIds,
         targetLength: currentResult.targetLength,
@@ -1624,6 +1709,13 @@
         catalog: catalog
       })
     );
+    // The full-pin rebuild is an implementation detail; restore the user's
+    // actual pinned flags so isPinned reflects intent, not mechanics.
+    for (let i = 0; i < result.tracks.length; i += 1) {
+      const prev = currentResult.tracks[i];
+      result.tracks[i].isPinned = !!(prev && prev.isPinned);
+    }
+    return result;
   }
 
   function buildChordPreviewSpec(trackA, trackB) {
@@ -1634,17 +1726,22 @@
     const keyInfoB = parseCamelotKey(trackB.camelotKey) || CAMELOT_WHEEL["8A"];
     const transition = computeTransitionScore(trackA, trackB);
 
-    const warmthMean = ((trackA.vector.warmth || 0.7) + (trackB.vector.warmth || 0.7)) / 2;
-    const tensionMean = ((trackA.vector.cinematicTension || 0.5) + (trackB.vector.cinematicTension || 0.5)) / 2;
+    const vecA = trackA.vector || {};
+    const vecB = trackB.vector || {};
+    const dimOr = function (v, fallback) {
+      return typeof v === "number" && Number.isFinite(v) ? v : fallback;
+    };
+    const warmthMean = (dimOr(vecA.warmth, 0.7) + dimOr(vecB.warmth, 0.7)) / 2;
+    const tensionMean = (dimOr(vecA.cinematicTension, 0.5) + dimOr(vecB.cinematicTension, 0.5)) / 2;
 
     const filterCutoffHz = Math.round(900 + (1 - warmthMean * 0.4) * 1400 + tensionMean * 600);
-    const waveform = trackA.vector.acousticness >= 0.65 ? "triangle" : "sawtooth";
+    const waveform = dimOr(vecA.acousticness, 0) >= 0.65 ? "triangle" : "sawtooth";
 
     return {
       fromTrackId: trackA.id,
       toTrackId: trackB.id,
-      fromTitle: trackA.title,
-      toTitle: trackB.title,
+      fromTitle: trackA.title || "Untitled",
+      toTitle: trackB.title || "Untitled",
       camelotA: keyInfoA.code,
       camelotB: keyInfoB.code,
       musicalKeyA: keyInfoA.musicalKey,
@@ -1663,28 +1760,50 @@
     };
   }
 
+  function oneLine(value) {
+    return String(value == null ? "" : value).replace(/[\r\n]+/g, " ").trim();
+  }
+
+  function csvCell(value) {
+    let text = String(value == null ? "" : value);
+    const leadMatch = text.match(/^ */);
+    const leadLen = leadMatch ? leadMatch[0].length : 0;
+    const head = text.charAt(leadLen);
+    const numeric = /^-?[\d.,\s]+$/.test(text.slice(leadLen));
+    const dangerous = head === "=" || head === "+" || head === "@" ||
+      head === "\t" || head === "\r" || (head === "-" && !numeric);
+    if (dangerous) {
+      text = "'" + text;
+    }
+    return /[",\n\r]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
+  }
+
   function exportSetlistM3U8(setlistResult) {
     if (!setlistResult || !Array.isArray(setlistResult.tracks)) {
       throw new Error("Valid setlistResult is required for M3U8 export.");
     }
+    const seeds = setlistResult.seedProfile && Array.isArray(setlistResult.seedProfile.seeds)
+      ? setlistResult.seedProfile.seeds
+      : [];
+    const summary = setlistResult.summary || {};
     const lines = [
       "#EXTM3U",
-      "#PLAYLIST:SetlistForge - " + setlistResult.arcPresetName,
-      "#EXT-X-QLOO-SEEDS:" + setlistResult.seedProfile.seeds.map(function (s) {
-        return s.title + " (" + s.domain + ")";
+      "#PLAYLIST:SetlistForge - " + oneLine(setlistResult.arcPresetName),
+      "#EXT-X-QLOO-SEEDS:" + seeds.map(function (s) {
+        return oneLine(s && s.title) + " (" + oneLine(s && s.domain) + ")";
       }).join("; "),
-      "#EXT-X-SETLIST-SCORE:" + Math.round(setlistResult.summary.overallSetlistScore * 100) + "%"
+      "#EXT-X-SETLIST-SCORE:" + Math.round((summary.overallSetlistScore || 0) * 100) + "%"
     ];
 
     for (let i = 0; i < setlistResult.tracks.length; i += 1) {
-      const item = setlistResult.tracks[i];
-      const trk = item.track;
+      const item = setlistResult.tracks[i] || {};
+      const trk = item.track || {};
       const dur = trk.durationSec || 240;
       lines.push(
-        "#EXTINF:" + dur + "," + trk.creator + " - " + trk.title +
-        " [" + trk.camelotKey + " | " + trk.bpm + " BPM | Energy " + Math.round(item.actualEnergy * 100) + "%]"
+        "#EXTINF:" + dur + "," + oneLine(trk.creator) + " - " + oneLine(trk.title) +
+        " [" + oneLine(trk.camelotKey) + " | " + oneLine(trk.bpm) + " BPM | Energy " + Math.round((item.actualEnergy || 0) * 100) + "%]"
       );
-      lines.push("qloo://" + trk.qlooUrn.replace(/^urn:entity:/, "") + ".flac");
+      lines.push("qloo://" + oneLine(trk.qlooUrn).replace(/^urn:entity:/, "") + ".flac");
     }
 
     return lines.join("\n") + "\n";
@@ -1700,29 +1819,35 @@
       arcPresetId: setlistResult.arcPresetId,
       arcPresetName: setlistResult.arcPresetName,
       controlPoints: setlistResult.controlPoints,
-      seeds: setlistResult.seedProfile.seeds.map(function (s) {
+      seeds: (setlistResult.seedProfile && Array.isArray(setlistResult.seedProfile.seeds)
+        ? setlistResult.seedProfile.seeds
+        : []).map(function (s) {
+        const seed = s || {};
         return {
-          id: s.id,
-          title: s.title,
-          creator: s.creator,
-          domain: s.domain,
-          qlooUrn: s.qlooUrn
+          id: seed.id,
+          title: seed.title,
+          creator: seed.creator,
+          domain: seed.domain,
+          qlooUrn: seed.qlooUrn
         };
       }),
-      centroid: setlistResult.seedProfile.centroid,
-      summary: setlistResult.summary,
+      centroid: (setlistResult.seedProfile && setlistResult.seedProfile.centroid) || {},
+      summary: setlistResult.summary || {},
       tracks: setlistResult.tracks.map(function (item) {
+        const entry = item || {};
+        const trk = entry.track || {};
+        const bridge = entry.bridge || {};
         return {
-          position: item.position,
-          id: item.track.id,
-          title: item.track.title,
-          creator: item.track.creator,
-          camelotKey: item.track.camelotKey,
-          bpm: item.track.bpm,
-          targetEnergy: item.targetEnergy,
-          actualEnergy: item.actualEnergy,
-          seedAffinity: item.seedAffinity,
-          crossDomainBridge: item.bridge.headline
+          position: entry.position,
+          id: trk.id,
+          title: trk.title,
+          creator: trk.creator,
+          camelotKey: trk.camelotKey,
+          bpm: trk.bpm,
+          targetEnergy: entry.targetEnergy,
+          actualEnergy: entry.actualEnergy,
+          seedAffinity: entry.seedAffinity,
+          crossDomainBridge: bridge.headline
         };
       }),
       transitions: setlistResult.transitions
@@ -1734,45 +1859,50 @@
     if (!setlistResult || !Array.isArray(setlistResult.tracks)) {
       throw new Error("Valid setlistResult is required for Markdown liner notes export.");
     }
+    const seeds = setlistResult.seedProfile && Array.isArray(setlistResult.seedProfile.seeds)
+      ? setlistResult.seedProfile.seeds
+      : [];
+    const summary = setlistResult.summary || {};
     const lines = [
-      "# SetlistForge Liner Notes: " + setlistResult.arcPresetName,
+      "# SetlistForge Liner Notes: " + oneLine(setlistResult.arcPresetName),
       "",
       "## Cultural Seed Conditioning",
       ""
     ];
 
-    for (let i = 0; i < setlistResult.seedProfile.seeds.length; i += 1) {
-      const s = setlistResult.seedProfile.seeds[i];
-      lines.push("- **" + s.title + "** by " + s.creator + " (*" + s.domain + "*, `" + s.qlooUrn + "`)");
+    for (let i = 0; i < seeds.length; i += 1) {
+      const s = seeds[i] || {};
+      lines.push("- **" + oneLine(s.title) + "** by " + oneLine(s.creator) + " (*" + oneLine(s.domain) + "*, `" + oneLine(s.qlooUrn) + "`)");
     }
 
     lines.push("");
     lines.push("## Setlist Performance Telemetry");
     lines.push("");
-    lines.push("- **Overall Arc Score**: " + Math.round(setlistResult.summary.overallSetlistScore * 100) + "%");
-    lines.push("- **Mean Seed Taste Affinity**: " + Math.round(setlistResult.summary.meanAffinity * 100) + "%");
-    lines.push("- **Energy Curve Fit**: " + Math.round(setlistResult.summary.energyFitScore * 100) + "% (MSE " + setlistResult.summary.energyMse + ")");
-    lines.push("- **Harmonic Transition Smoothness**: " + Math.round(setlistResult.summary.meanHarmonicSmoothness * 100) + "%");
-    lines.push("- **Camelot Harmonic Path**: `" + setlistResult.summary.camelotPath + "`");
+    lines.push("- **Overall Arc Score**: " + Math.round((summary.overallSetlistScore || 0) * 100) + "%");
+    lines.push("- **Mean Seed Taste Affinity**: " + Math.round((summary.meanAffinity || 0) * 100) + "%");
+    lines.push("- **Energy Curve Fit**: " + Math.round((summary.energyFitScore || 0) * 100) + "% (MSE " + (summary.energyMse || 0) + ")");
+    lines.push("- **Harmonic Transition Smoothness**: " + Math.round((summary.meanHarmonicSmoothness || 0) * 100) + "%");
+    lines.push("- **Camelot Harmonic Path**: `" + oneLine(summary.camelotPath) + "`");
     lines.push("");
     lines.push("## Sequenced Tracklist & Cross-Domain Bridges");
     lines.push("");
 
     for (let i = 0; i < setlistResult.tracks.length; i += 1) {
-      const item = setlistResult.tracks[i];
-      const trk = item.track;
+      const item = setlistResult.tracks[i] || {};
+      const trk = item.track || {};
+      const bridge = item.bridge || {};
       lines.push(
-        "### " + item.position + ". " + trk.title + " - " + trk.creator +
-        " (`" + trk.camelotKey + "`, " + trk.bpm + " BPM)"
+        "### " + (item.position || i + 1) + ". " + oneLine(trk.title) + " - " + oneLine(trk.creator) +
+        " (`" + oneLine(trk.camelotKey) + "`, " + oneLine(trk.bpm) + " BPM)"
       );
       lines.push(
-        "- **Energy**: " + Math.round(item.actualEnergy * 100) +
-        "% (Target " + Math.round(item.targetEnergy * 100) + "%) | **Affinity**: " +
-        Math.round(item.seedAffinity * 100) + "%"
+        "- **Energy**: " + Math.round((item.actualEnergy || 0) * 100) +
+        "% (Target " + Math.round((item.targetEnergy || 0) * 100) + "%) | **Affinity**: " +
+        Math.round((item.seedAffinity || 0) * 100) + "%"
       );
-      lines.push("- **Why It Fits**: " + item.bridge.headline);
-      if (item.transitionFromPrev) {
-        lines.push("- **Transition In**: " + item.transitionFromPrev.transitionLabel);
+      lines.push("- **Why It Fits**: " + oneLine(bridge.headline));
+      if (item.transitionFromPrev && item.transitionFromPrev.transitionLabel) {
+        lines.push("- **Transition In**: " + oneLine(item.transitionFromPrev.transitionLabel));
       }
       lines.push("");
     }
@@ -1780,13 +1910,59 @@
     return lines.join("\n");
   }
 
+  function exportSetlistCSV(setlistResult) {
+    if (!setlistResult || !Array.isArray(setlistResult.tracks)) {
+      throw new Error("Valid setlistResult is required for CSV export.");
+    }
+    const header = [
+      "position",
+      "title",
+      "creator",
+      "year",
+      "camelotKey",
+      "bpm",
+      "durationSec",
+      "targetEnergy",
+      "actualEnergy",
+      "energyDelta",
+      "seedAffinity",
+      "isPinned",
+      "transitionScore",
+      "camelotRelation"
+    ];
+    const rows = [header.map(csvCell).join(",")];
+    for (let i = 0; i < setlistResult.tracks.length; i += 1) {
+      const item = setlistResult.tracks[i] || {};
+      const trk = item.track || {};
+      const transition = item.transitionFromPrev || {};
+      const camelotInfo = transition.camelotInfo || {};
+      rows.push([
+        item.position == null ? i + 1 : item.position,
+        trk.title,
+        trk.creator,
+        trk.year,
+        trk.camelotKey,
+        trk.bpm,
+        trk.durationSec,
+        item.targetEnergy,
+        item.actualEnergy,
+        item.energyDelta,
+        item.seedAffinity,
+        item.isPinned ? "TRUE" : "FALSE",
+        transition.totalScore == null ? "" : transition.totalScore,
+        camelotInfo.relationType
+      ].map(csvCell).join(","));
+    }
+    return rows.join("\r\n") + "\r\n";
+  }
+
   function buildQlooInsightsRequest(seedIds, apiKey, endpointBase) {
     const catalog = getCatalog();
     const seeds = [];
     const ids = Array.isArray(seedIds) ? seedIds : [];
-    for (let i = 0; i < ids.length; i += 1) {
+    for (let i = 0; i < ids.length && seeds.length < 4; i += 1) {
       const entity = getEntityById(ids[i], catalog);
-      if (entity) {
+      if (entity && !seeds.some(function (s) { return s.id === entity.id; })) {
         seeds.push(entity);
       }
     }
@@ -1802,9 +1978,13 @@
       "&take=12";
 
     const url = baseUrl + "/v2/insights?" + query;
-    const maskedKey = typeof apiKey === "string" && apiKey.trim().length > 4
-      ? apiKey.trim().slice(0, 4) + "..."
-      : "YOUR_QLOO_API_KEY";
+    const maskedKey = (function () {
+      if (typeof apiKey !== "string" || apiKey.trim().length <= 4) {
+        return "YOUR_QLOO_API_KEY";
+      }
+      const safe = apiKey.trim().slice(0, 4).replace(/[^A-Za-z0-9_.-]/g, "");
+      return safe ? safe + "..." : "YOUR_QLOO_API_KEY";
+    })();
 
     return {
       url: url,
@@ -1814,7 +1994,7 @@
         "X-Api-Key": typeof apiKey === "string" && apiKey.trim() ? apiKey.trim() : ""
       },
       curlPreview:
-        "curl -s -H \"X-Api-Key: " + maskedKey + "\" \"" + url + "\"",
+        "curl -s -H " + JSON.stringify("X-Api-Key: " + maskedKey) + " " + JSON.stringify(url),
       seedUrns: seeds.map(function (s) { return s.qlooUrn; })
     };
   }
@@ -1844,6 +2024,8 @@
     exportSetlistM3U8: exportSetlistM3U8,
     exportSetlistJSON: exportSetlistJSON,
     exportSetlistMarkdown: exportSetlistMarkdown,
+    exportSetlistCSV: exportSetlistCSV,
+    csvCell: csvCell,
     buildQlooInsightsRequest: buildQlooInsightsRequest
   };
 });
