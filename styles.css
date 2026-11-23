@@ -1033,6 +1033,336 @@ body {
   color: var(--ink-muted);
 }
 
+/* Harmonic Beam-Search & Camelot Transition Lab */
+.lab-grid-span {
+  grid-column: 1 / -1;
+}
+
+.lab-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.lab-panel {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-console);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.lab-comparator-panel {
+  grid-column: 1 / -1;
+}
+
+.lab-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.lab-table-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border-console);
+  border-radius: var(--radius-sm);
+}
+
+.lab-strategy-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  min-width: 720px;
+}
+
+.lab-strategy-table th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-muted);
+  padding: 7px 10px;
+  background-color: var(--bg-recessed);
+  border-bottom: 1px solid var(--border-console);
+  white-space: nowrap;
+}
+
+.lab-strategy-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-console);
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.lab-strategy-table tr:last-child td {
+  border-bottom: none;
+}
+
+.lab-strategy-row {
+  cursor: pointer;
+}
+
+.lab-strategy-row:hover td {
+  background-color: rgba(43, 76, 126, 0.06);
+}
+
+.lab-strategy-row.is-selected td {
+  background-color: rgba(43, 76, 126, 0.10);
+}
+
+.lab-strategy-row.is-applied .lab-strat-name {
+  color: var(--vu-emerald);
+}
+
+.lab-strategy-row.is-applied td:first-child {
+  box-shadow: inset 3px 0 0 var(--vu-emerald);
+}
+
+.lab-strategy-row:focus-visible {
+  outline: 2px solid var(--harmonic-cobalt);
+  outline-offset: -2px;
+}
+
+.lab-strat-name {
+  font-weight: 700;
+  font-size: 12.5px;
+  color: var(--ink-carbon);
+}
+
+.lab-strat-desc {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: var(--ink-muted);
+  max-width: 280px;
+  white-space: normal;
+  margin-top: 2px;
+}
+
+.lab-metric-good {
+  color: var(--vu-emerald);
+  font-weight: 700;
+}
+
+.lab-metric-warn {
+  color: var(--signal-vermilion);
+  font-weight: 700;
+}
+
+.lab-invariant-pill {
+  display: inline-block;
+  font-size: 10.5px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border-console);
+  margin-right: 4px;
+  background-color: var(--bg-recessed);
+}
+
+.lab-invariant-pill.ok {
+  border-color: rgba(30, 94, 74, 0.45);
+  color: var(--vu-emerald);
+  background-color: rgba(30, 94, 74, 0.08);
+}
+
+.lab-invariant-pill.bad {
+  border-color: var(--signal-vermilion);
+  color: var(--signal-vermilion);
+  background-color: rgba(200, 75, 49, 0.08);
+}
+
+.swatch-amber {
+  background-color: var(--amber-gold);
+}
+
+.lab-wheel-frame {
+  display: flex;
+  justify-content: center;
+}
+
+#camelotWheelSvg {
+  width: 100%;
+  max-width: 380px;
+  height: auto;
+  display: block;
+}
+
+#labEnergySvg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.lab-key-node circle {
+  fill: var(--bg-card);
+  stroke: var(--ink-muted);
+  stroke-width: 1.4;
+}
+
+.lab-key-node text {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  fill: var(--ink-carbon);
+  text-anchor: middle;
+}
+
+.lab-key-node.key-title text {
+  font-size: 10px;
+  font-weight: 600;
+  fill: var(--ink-subtle);
+}
+
+.lab-key-node.in-path circle {
+  stroke: var(--signal-vermilion);
+  stroke-width: 2.4;
+  fill: #FDF3EF;
+}
+
+.lab-key-node:focus-visible {
+  outline: none;
+}
+
+.lab-key-node:focus-visible circle {
+  stroke: var(--harmonic-cobalt);
+  stroke-width: 3;
+}
+
+.lab-wheel-arc {
+  fill: none;
+  stroke-width: 3;
+  cursor: pointer;
+}
+
+.lab-wheel-arc:focus-visible {
+  outline: none;
+  stroke-width: 5;
+}
+
+.lab-wheel-legend {
+  justify-content: center;
+  font-size: 11px;
+}
+
+.lab-energy-stats {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--ink-muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.lab-fingerprint-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lab-fingerprint {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--vu-emerald);
+  background-color: var(--bg-recessed);
+  border: 1px solid var(--border-console);
+  border-radius: 4px;
+  padding: 6px 9px;
+  word-break: break-all;
+}
+
+.lab-export-preview {
+  min-height: 130px;
+}
+
+.lab-selftest-summary {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-carbon);
+}
+
+.lab-selftest-summary.all-pass {
+  color: var(--vu-emerald);
+}
+
+.lab-selftest-summary.has-fail {
+  color: var(--signal-vermilion);
+}
+
+.lab-selftest-list {
+  margin: 0;
+  padding-left: 22px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.lab-selftest-list li.pass {
+  color: var(--vu-emerald);
+}
+
+.lab-selftest-list li.fail {
+  color: var(--signal-vermilion);
+  font-weight: 700;
+}
+
+.lab-status-line {
+  display: block;
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border-console);
+  min-height: 18px;
+}
+
+/* Intrinsic min-width containment: flex/grid children shrink below their
+   content width so narrow viewports never force horizontal overflow. */
+.console-grid > *,
+.lab-grid > *,
+.header-actions,
+.header-actions > *,
+.module-header > *,
+.seed-chip,
+.seed-chip-info,
+.catalog-item,
+.catalog-item-main,
+.catalog-filter-bar,
+.domain-tabs,
+.scenario-control,
+.control-label,
+.selected-seeds-tray,
+.centroid-panel,
+.seed-catalog-list,
+.swap-controls,
+.swap-controls > *,
+.telemetry-strip,
+.telemetry-strip > *,
+.telemetry-card {
+  min-width: 0;
+}
+.swap-controls {
+  flex-wrap: wrap;
+}
+.console-select,
+.console-input {
+  max-width: 100%;
+  min-width: 0;
+}
+.seed-chip-meta,
+.seed-chip-title,
+.catalog-item-sub,
+.catalog-item-title,
+.lab-fingerprint {
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 1024px) {
   .console-grid {
     grid-template-columns: 1fr;
@@ -1041,6 +1371,9 @@ body {
     grid-template-columns: repeat(2, 1fr);
   }
   .drawer-grid {
+    grid-template-columns: 1fr;
+  }
+  .lab-grid {
     grid-template-columns: 1fr;
   }
 }

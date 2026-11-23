@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.qloo.com https://hackathon.api.qloo.com; object-src 'none'; base-uri 'none'; form-action 'none'" />
   <title>SetlistForge | Cross-Domain Music, Film &amp; Sonic Mood Arc Planner</title>
+  <link rel="icon" href="data:," />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -262,6 +263,126 @@
           <div id="setlistTrackContainer" class="setlist-track-container" role="list"></div>
         </section>
       </section>
+
+      <!-- Module 05: Harmonic Beam-Search & Camelot Transition Lab (full-width row) -->
+      <section class="console-module lab-module lab-grid-span" id="harmonicLabSection" aria-labelledby="harmonicLabHeading">
+        <div class="module-header">
+          <div>
+            <h2 id="harmonicLabHeading" class="module-title">5. Harmonic &amp; Beam-Search Lab</h2>
+          </div>
+          <span id="labStrategyBadge" class="meter-pill pill-vermilion">Balanced Beam Search</span>
+        </div>
+
+        <div class="lab-grid">
+          <!-- 5-Strategy x 4-Arc Comparator -->
+          <div class="lab-panel lab-comparator-panel">
+            <div class="lab-panel-head">
+              <h3 class="subpanel-title">5-Strategy x 4-Arc Sequencer Comparator</h3>
+              <select id="labArcViewSelect" class="console-select" aria-label="Comparator metric view">
+                <option value="active">Active Arc Metrics</option>
+                <option value="mean">Mean Across All 4 Arcs</option>
+              </select>
+            </div>
+            <div class="lab-table-scroll">
+              <table class="lab-strategy-table" id="labStrategyTable">
+                <thead>
+                  <tr>
+                    <th scope="col">Strategy</th>
+                    <th scope="col">Camelot OK</th>
+                    <th scope="col">Clashes</th>
+                    <th scope="col">Energy MSE</th>
+                    <th scope="col">Affinity</th>
+                    <th scope="col">Max BPM Jump</th>
+                    <th scope="col">Arc Score</th>
+                    <th scope="col">Invariants</th>
+                  </tr>
+                </thead>
+                <tbody id="labStrategyTbody"></tbody>
+              </table>
+            </div>
+            <div class="drawer-action-row">
+              <button type="button" id="labApplyStrategyBtn" class="btn btn-primary btn-small">Apply Strategy to Setlist</button>
+              <span id="labApplyStatus" class="api-status-text" aria-live="polite"></span>
+            </div>
+          </div>
+
+          <!-- Camelot Wheel -->
+          <div class="lab-panel lab-wheel-panel">
+            <h3 class="subpanel-title">24-Key Camelot Wheel &amp; Setlist Path</h3>
+            <div class="svg-chart-frame lab-wheel-frame">
+              <svg
+                id="camelotWheelSvg"
+                viewBox="0 0 420 420"
+                role="img"
+                aria-label="Camelot wheel of 24 keys showing the current setlist harmonic path"
+              ></svg>
+            </div>
+            <div class="chart-legend lab-wheel-legend">
+              <span class="legend-item"><span class="legend-swatch swatch-emerald"></span>Exact</span>
+              <span class="legend-item"><span class="legend-swatch swatch-cobalt"></span>Fifth / Relative</span>
+              <span class="legend-item"><span class="legend-swatch swatch-amber"></span>Energy Boost</span>
+              <span class="legend-item"><span class="legend-swatch swatch-vermilion"></span>Clash</span>
+            </div>
+          </div>
+
+          <!-- Energy Telemetry -->
+          <div class="lab-panel lab-energy-panel">
+            <h3 class="subpanel-title">Target vs Actual Energy Arc Telemetry</h3>
+            <div class="svg-chart-frame">
+              <svg
+                id="labEnergySvg"
+                viewBox="0 0 460 240"
+                role="img"
+                aria-label="Target versus actual energy arc for the current strategy"
+              ></svg>
+            </div>
+            <div id="labEnergyStats" class="lab-energy-stats"></div>
+          </div>
+
+          <!-- Audited Export Bar -->
+          <div class="lab-panel lab-export-panel">
+            <div class="lab-panel-head">
+              <h3 class="subpanel-title">SHA-256 Audited Export Bar</h3>
+              <div class="export-format-tabs" role="group" aria-label="Audited export format">
+                <button type="button" class="lab-export-tab export-tab active" data-lab-format="json" aria-pressed="true">JSON</button>
+                <button type="button" class="lab-export-tab export-tab" data-lab-format="csv" aria-pressed="false">CSV</button>
+                <button type="button" class="lab-export-tab export-tab" data-lab-format="markdown" aria-pressed="false">Markdown</button>
+              </div>
+            </div>
+            <div class="lab-fingerprint-row">
+              <span class="control-label">Canonical Brief Fingerprint</span>
+              <code id="labFingerprint" class="lab-fingerprint">SHA-256 pending</code>
+            </div>
+            <textarea
+              id="labExportPreview"
+              class="export-textarea lab-export-preview"
+              readonly
+              aria-label="Audited export preview"
+            ></textarea>
+            <div class="drawer-action-row">
+              <button type="button" id="labCopyExportBtn" class="btn btn-secondary btn-small">Copy Export</button>
+              <button type="button" id="labCopyHashBtn" class="btn btn-secondary btn-small">Copy #slf= Share Link</button>
+              <button type="button" id="labVerifyBtn" class="btn btn-secondary btn-small">Verify Integrity</button>
+              <button type="button" id="labTamperBtn" class="btn btn-secondary btn-small">Tamper Demo</button>
+              <span id="labExportStatus" class="api-status-text" aria-live="polite"></span>
+            </div>
+          </div>
+
+          <!-- Deterministic Self-Test Runner -->
+          <div class="lab-panel lab-selftest-panel">
+            <div class="lab-panel-head">
+              <h3 class="subpanel-title">Deterministic Self-Test Runner</h3>
+              <button type="button" id="labSelfTestBtn" class="btn btn-primary btn-small">Re-Run Self-Tests</button>
+            </div>
+            <div id="labSelfTestSummary" class="lab-selftest-summary">Self-tests have not run yet.</div>
+            <ol id="labSelfTestList" class="lab-selftest-list"></ol>
+          </div>
+        </div>
+
+        <div class="lab-status-line">
+          <span id="labStatusText" class="api-status-text" aria-live="polite"></span>
+        </div>
+      </section>
     </main>
 
     <!-- Slide-Down / Expandable Drawer: Live Qloo Insights API Connector + Export -->
@@ -269,7 +390,7 @@
       <div class="drawer-inner">
         <div class="drawer-header">
           <div>
-            <h2 id="drawerHeading" class="module-title">5. Live Qloo Insights API Connector &amp; Setlist Export Suite</h2>
+            <h2 id="drawerHeading" class="module-title">6. Live Qloo Insights API Connector &amp; Setlist Export Suite</h2>
           </div>
           <button type="button" id="closeDrawerBtn" class="btn btn-secondary btn-small">Close Console Drawer</button>
         </div>
@@ -348,6 +469,7 @@
   </div>
 
   <script src="engine.js"></script>
+  <script src="harmonic-lab.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
