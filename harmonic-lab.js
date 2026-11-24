@@ -654,7 +654,11 @@
         if (low >= 0xdc00 && low <= 0xdfff) {
           code = 0x10000 + ((code - 0xd800) << 10) + (low - 0xdc00);
           i += 1;
+        } else {
+          code = 0xfffd;
         }
+      } else if (code >= 0xd800 && code <= 0xdfff) {
+        code = 0xfffd;
       }
       if (code < 0x80) {
         out.push(code);
@@ -872,6 +876,14 @@
   }
 
   var auditedCache = new Map();
+
+  function deepFreeze(value) {
+    if (value && typeof value === "object" && !Object.isFrozen(value)) {
+      Object.keys(value).forEach(function (key) { deepFreeze(value[key]); });
+      Object.freeze(value);
+    }
+    return value;
+  }
   var AUDITED_CACHE_CAP = 24;
 
   function buildAuditedJsonExport(digest, payload) {
@@ -904,6 +916,7 @@
     var prov = [
       "# setlistforge-brief-sha256: " + digest,
       "# setlistforge-body-sha256: " + sha256Hex(body),
+      "# setlistforge-canonical-base64: " + base64UrlEncode(canonicalStringify(payload)),
       "# generator: SetlistForge Harmonic Lab"
     ].join("\n");
     return prov + "\n" + body;
@@ -944,6 +957,7 @@
       "<!-- setlistforge-integrity -->",
       "- **Brief SHA-256**: `" + digest + "`",
       "- **Body SHA-256**: `" + sha256Hex(body) + "`",
+      "- **Canonical Base64**: `" + base64UrlEncode(canonicalStringify(payload)) + "`",
       "<!-- /setlistforge-integrity -->",
       ""
     ].join("\n");
@@ -974,6 +988,7 @@
         auditedCache.delete(oldest.value);
       }
     }
+    deepFreeze(bundle);
     auditedCache.set(digest, bundle);
     return bundle;
   }
@@ -1027,6 +1042,7 @@
       var split = splitProvenanceLines(text);
       var briefDigest = null;
       var bodyDigest = null;
+      var canonicalEncoded = null;
       for (var i = 0; i < split.provLines.length; i += 1) {
         var line = split.provLines[i];
         if (line.indexOf("# setlistforge-brief-sha256:") === 0) {
@@ -1035,10 +1051,24 @@
         if (line.indexOf("# setlistforge-body-sha256:") === 0) {
           bodyDigest = line.slice("# setlistforge-body-sha256:".length).trim();
         }
+        if (line.indexOf("# setlistforge-canonical-base64:") === 0) {
+          canonicalEncoded = line.slice("# setlistforge-canonical-base64:".length).trim();
+        }
       }
       out.digest = isHex64(briefDigest) ? briefDigest : null;
       var recomputedBody = sha256Hex(split.body);
-      var csvOk = isHex64(briefDigest) && isHex64(bodyDigest) && bodyDigest === recomputedBody;
+      var canonicalOk = false;
+      if (canonicalEncoded) {
+        var canonicalBytes = base64UrlDecode(canonicalEncoded);
+        if (canonicalBytes) {
+          try {
+            canonicalOk = sha256Hex(utf8Decode(canonicalBytes)) === briefDigest;
+          } catch (e2) {
+            canonicalOk = false;
+          }
+        }
+      }
+      var csvOk = isHex64(briefDigest) && isHex64(bodyDigest) && bodyDigest === recomputedBody && canonicalOk;
       if (csvOk && expected) {
         csvOk = briefDigest === expected;
       }
@@ -1056,10 +1086,25 @@
       }
       var body = text.slice(0, markerIdx);
       var footer = text.slice(markerIdx);
+      var endMarker = "<!-- /setlistforge-integrity -->";
+      var endIdx = footer.indexOf(endMarker);
+      var terminal = endIdx !== -1 && footer.slice(endIdx + endMarker.length).trim() === "";
       var briefMatch = footer.match(/Brief SHA-256\*\*: `([0-9a-f]{64})`/);
       var bodyMatch = footer.match(/Body SHA-256\*\*: `([0-9a-f]{64})`/);
+      var canonicalMatch = footer.match(/Canonical Base64\*\*: `([A-Za-z0-9_-]+)`/);
       out.digest = briefMatch ? briefMatch[1] : null;
-      var mdOk = !!briefMatch && !!bodyMatch && sha256Hex(body) === bodyMatch[1];
+      var canonicalOk = false;
+      if (canonicalMatch) {
+        var canonicalBytes = base64UrlDecode(canonicalMatch[1]);
+        if (canonicalBytes) {
+          try {
+            canonicalOk = !!briefMatch && sha256Hex(utf8Decode(canonicalBytes)) === briefMatch[1];
+          } catch (e3) {
+            canonicalOk = false;
+          }
+        }
+      }
+      var mdOk = terminal && !!briefMatch && !!bodyMatch && sha256Hex(body) === bodyMatch[1] && canonicalOk;
       if (mdOk && expected) {
         mdOk = briefMatch[1] === expected;
       }
@@ -1145,6 +1190,9 @@
 
   function base64UrlDecode(str) {
     var s = String(str).replace(/-/g, "+").replace(/_/g, "/");
+    if (!s || s.length % 4 === 1) {
+      return null;
+    }
     var rev = {};
     for (var i = 0; i < 64; i += 1) {
       rev[B64_ALPHABET[i]] = i;
@@ -1164,6 +1212,9 @@
         bytes.push((buffer >> bits) & 0xff);
       }
     }
+    var rem = s.length % 4;
+    if (rem === 2 && (rev[s[s.length - 1]] & 15) !== 0) return null;
+    if (rem === 3 && (rev[s[s.length - 1]] & 3) !== 0) return null;
     return bytes;
   }
 
@@ -1172,19 +1223,31 @@
     var i = 0;
     while (i < bytes.length) {
       var b = bytes[i];
-      var code;
+      var code, extra;
       if (b < 0x80) {
         code = b;
-        i += 1;
-      } else if (b < 0xe0) {
-        code = ((b & 0x1f) << 6) | (bytes[i + 1] & 0x3f);
-        i += 2;
-      } else if (b < 0xf0) {
-        code = ((b & 0x0f) << 12) | ((bytes[i + 1] & 0x3f) << 6) | (bytes[i + 2] & 0x3f);
-        i += 3;
+        extra = 0;
+      } else if (b >= 0xc2 && b < 0xe0) {
+        code = b & 31;
+        extra = 1;
+      } else if (b >= 0xe0 && b < 0xf0) {
+        code = b & 15;
+        extra = 2;
+      } else if (b >= 0xf0 && b <= 0xf4) {
+        code = b & 7;
+        extra = 3;
       } else {
-        code = ((b & 0x07) << 18) | ((bytes[i + 1] & 0x3f) << 12) | ((bytes[i + 2] & 0x3f) << 6) | (bytes[i + 3] & 0x3f);
-        i += 4;
+        throw new RangeError("invalid UTF-8 lead byte");
+      }
+      if (i + extra >= bytes.length) throw new RangeError("truncated UTF-8 sequence");
+      for (var j = 0; j < extra; j += 1) {
+        var cb = bytes[++i];
+        if ((cb & 0xc0) !== 0x80) throw new RangeError("invalid UTF-8 continuation byte");
+        code = (code << 6) | (cb & 63);
+      }
+      var minimum = extra === 1 ? 0x80 : (extra === 2 ? 0x800 : 0x10000);
+      if (extra && (code < minimum || code > 0x10ffff || (code >= 0xd800 && code <= 0xdfff))) {
+        throw new RangeError("invalid UTF-8 code point");
       }
       if (code > 0xffff) {
         code -= 0x10000;
@@ -1192,6 +1255,7 @@
       } else {
         out += String.fromCharCode(code);
       }
+      i += 1;
     }
     return out;
   }

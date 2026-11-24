@@ -1363,3 +1363,50 @@ test("LAB-222: every sequenced track exists in the engine music catalog", () => 
     }
   }
 });
+
+// ---------- L580 deterministic codec and verification hardening ----------
+
+test("L580-01: base64url decode rejects impossible lengths and nonzero canonical padding bits", () => {
+  assert.deepEqual(Lab.base64UrlDecode("QQ"), [65]);
+  assert.equal(Lab.base64UrlDecode("QU"), null);
+  assert.deepEqual(Lab.base64UrlDecode("YWI"), [97, 98]);
+  assert.equal(Lab.base64UrlDecode("YWJ"), null);
+  assert.equal(Lab.base64UrlDecode("A"), null);
+});
+
+test("L580-02: UTF-8 encoding replaces lone surrogates like the platform encoder", () => {
+  const text = "lone\ud800 surrogate";
+  assert.equal(Lab.sha256Hex(text), shaRef(text));
+});
+
+test("L580-03: audited cache bundles are deeply immutable", () => {
+  const bundle = Lab.auditedBundle(seq("balanced-beam"), { strategyId: "balanced-beam" });
+  bundle.payload.tracks[0].title = "rewritten";
+  bundle.exports.json = "rewritten";
+  assert.notEqual(bundle.payload.tracks[0].title, "rewritten");
+  assert.notEqual(bundle.exports.json, "rewritten");
+});
+
+test("L580-04: CSV verification links the brief digest to the embedded canonical payload", () => {
+  const bundle = Lab.auditedBundle(seq("balanced-beam"), { strategyId: "balanced-beam" });
+  assert.equal(Lab.verifyAuditedExport("csv", bundle.exports.csv).ok, true);
+  const other = Lab.auditedBundle(seq("camelot-strict"), { strategyId: "camelot-strict" }).digest;
+  const forged = bundle.exports.csv.replace(bundle.digest, other);
+  assert.equal(Lab.verifyAuditedExport("csv", forged).ok, false);
+});
+
+test("L580-05: Markdown verification links the brief digest and rejects trailing attacker text", () => {
+  const bundle = Lab.auditedBundle(seq("balanced-beam"), { strategyId: "balanced-beam" });
+  assert.equal(Lab.verifyAuditedExport("markdown", bundle.exports.markdown).ok, true);
+  assert.equal(Lab.verifyAuditedExport("markdown", bundle.exports.markdown + "attacker controlled text").ok, false);
+  const other = Lab.auditedBundle(seq("camelot-strict"), { strategyId: "camelot-strict" }).digest;
+  const forged = bundle.exports.markdown.replace(bundle.digest, other);
+  assert.equal(Lab.verifyAuditedExport("markdown", forged).ok, false);
+});
+
+test("L580-06: stylesheet honors reduced motion", () => {
+  assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
+  assert.match(css, /animation-duration:\s*0\.01ms\s*!important/);
+  assert.match(css, /transition-duration:\s*0\.01ms\s*!important/);
+  assert.match(css, /scroll-behavior:\s*auto\s*!important/);
+});
