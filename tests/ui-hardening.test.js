@@ -35,9 +35,24 @@ test("UI 04: skip link targets the main workspace", () => {
   assert.ok(/id="mainWorkspace"/.test(html));
 });
 
-test("UI 05: skip link CSS moves offscreen until focused", () => {
-  assert.ok(/\.skip-link\s*{[^}]*left:\s*-9999px/.test(css));
-  assert.ok(/\.skip-link:focus-visible\s*{[^}]*left:\s*0/.test(css));
+test("UI 05: skip link CSS hides vertically without leaving the viewport", () => {
+  const rule = css.match(/\.skip-link\s*{([^}]+)}/);
+  assert.ok(rule);
+  assert.ok(/left:\s*0/.test(rule[1]));
+  assert.ok(/transform:\s*translateY\(-120%\)/.test(rule[1]));
+  assert.ok(!/left:\s*-\d/.test(rule[1]));
+  assert.ok(/\.skip-link:focus-visible\s*{[^}]*transform:\s*none/.test(css));
+});
+
+test("UI 05A: text token colors meet WCAG AA on the light console surfaces", () => {
+  assert.ok(/ --ink-subtle:\s*#5F5B52;/i.test(css));
+  assert.ok(/ --signal-vermilion:\s*#9F3520;/i.test(css));
+  assert.ok(!app.includes("#78746B"));
+});
+
+test("UI 05B: the long Camelot path may wrap instead of clipping", () => {
+  assert.ok(/#metricCamelotPath\s*{[^}]*white-space:\s*normal/.test(css));
+  assert.ok(/#metricCamelotPath\s*{[^}]*overflow:\s*visible/.test(css));
 });
 
 // ---------- WCAG 2.4.7 focus visible ----------

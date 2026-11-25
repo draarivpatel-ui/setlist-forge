@@ -102,7 +102,7 @@
       );
       parts.push(
         '<text x="' + (padLeft - 8) + '" y="' + (gy + 4) +
-        '" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" fill="#78746B">' +
+        '" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" fill="#5F5B52">' +
         Math.round(lvl * 100) + '%</text>'
       );
     }
@@ -129,7 +129,7 @@
     );
 
     parts.push(
-      '<polyline fill="none" stroke="#C84B31" stroke-width="2.5" stroke-dasharray="6 4" points="' +
+      '<polyline fill="none" stroke="#9F3520" stroke-width="2.5" stroke-dasharray="6 4" points="' +
       targetPoints.join(" ") + '" />'
     );
 
@@ -171,7 +171,7 @@
         : rawTitle;
 
       parts.push(
-        '<circle cx="' + cx + '" cy="' + cyTarget + '" r="4" fill="#C84B31" />'
+        '<circle cx="' + cx + '" cy="' + cyTarget + '" r="4" fill="#9F3520" />'
       );
 
       parts.push(
@@ -750,7 +750,7 @@
       "relative-mode": "#2B4C7E",
       "adjacent-fifth": "#2B4C7E",
       "energy-boost": "#B87D1E",
-      "clash": "#C84B31"
+      "clash": "#9F3520"
     };
 
     function labStatus(msg) {
@@ -856,7 +856,7 @@
           '<marker id="labArrowA" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">' +
           '<path d="M0,0 L7,3.5 L0,7 Z" fill="#B87D1E"/></marker>' +
           '<marker id="labArrowV" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">' +
-          '<path d="M0,0 L7,3.5 L0,7 Z" fill="#C84B31"/></marker>' +
+          '<path d="M0,0 L7,3.5 L0,7 Z" fill="#9F3520"/></marker>' +
         '</defs>'
       );
 
@@ -958,7 +958,7 @@
         parts.push(
           '<line x1="' + padLeft + '" y1="' + gy + '" x2="' + (width - padRight) + '" y2="' + gy +
           '" stroke="#D8D2C5" stroke-dasharray="3 3" stroke-width="1" />' +
-          '<text x="' + (padLeft - 6) + '" y="' + (gy + 4) + '" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#78746B">' +
+          '<text x="' + (padLeft - 6) + '" y="' + (gy + 4) + '" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#5F5B52">' +
           Math.round(lvl * 100) + '%</text>'
         );
       }
@@ -971,14 +971,14 @@
       }
 
       parts.push(
-        '<polyline fill="none" stroke="#C84B31" stroke-width="2" stroke-dasharray="5 4" points="' + targetPts.join(" ") + '" />' +
+        '<polyline fill="none" stroke="#9F3520" stroke-width="2" stroke-dasharray="5 4" points="' + targetPts.join(" ") + '" />' +
         '<polyline fill="none" stroke="#2B4C7E" stroke-width="2.5" points="' + actualPts.join(" ") + '" />'
       );
 
       for (let i = 0; i < count; i += 1) {
         const cx = xFor(i);
         parts.push(
-          '<circle cx="' + cx + '" cy="' + yFor(telemetry.target[i]) + '" r="3.5" fill="#C84B31" />' +
+          '<circle cx="' + cx + '" cy="' + yFor(telemetry.target[i]) + '" r="3.5" fill="#9F3520" />' +
           '<g class="lab-energy-node" tabindex="0" focusable="true" role="button" data-lab-slot="' + i +
           '" aria-label="Slot ' + (i + 1) + ", target " + Math.round(telemetry.target[i] * 100) + "%, actual " + Math.round(telemetry.actual[i] * 100) + '%">' +
           '<circle cx="' + cx + '" cy="' + yFor(telemetry.actual[i]) + '" r="5.5" fill="#FAF8F3" stroke="#2B4C7E" stroke-width="2.2" />' +

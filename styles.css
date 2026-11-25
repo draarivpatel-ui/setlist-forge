@@ -5,10 +5,10 @@
   --bg-card: #FAF8F3;
   --ink-carbon: #151514;
   --ink-muted: #52504A;
-  --ink-subtle: #78746B;
+  --ink-subtle: #5F5B52;
   --border-console: #CFC8B8;
   --border-strong: #151514;
-  --signal-vermilion: #C84B31;
+  --signal-vermilion: #9F3520;
   --vu-emerald: #1E5E4A;
   --harmonic-cobalt: #2B4C7E;
   --amber-gold: #B87D1E;
@@ -622,6 +622,13 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+#metricCamelotPath {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
 }
 
 /* SVG Energy & Harmonic Curve */
@@ -1380,8 +1387,9 @@ body {
 
 .skip-link {
   position: absolute;
-  left: -9999px;
+  left: 0;
   top: 0;
+  transform: translateY(-120%);
   z-index: 100;
   padding: 10px 16px;
   background-color: var(--harmonic-cobalt);
@@ -1393,7 +1401,7 @@ body {
   border-radius: 0 0 var(--radius-sm, 6px) 0;
 }
 .skip-link:focus-visible {
-  left: 0;
+  transform: none;
 }
 
 button:focus-visible,

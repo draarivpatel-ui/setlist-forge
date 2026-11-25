@@ -21,7 +21,7 @@ test("DOM 01: index.html has valid doctype, lang, charset, viewport, and Setlist
 test("DOM 02: styles.css defines Blue Note / analog mastering console color tokens", () => {
   assert.match(css, /#F6F3EC/i);
   assert.match(css, /#ECE7DC/i);
-  assert.match(css, /#C84B31/i);
+  assert.match(css, /#9F3520/i);
   assert.match(css, /#1E5E4A/i);
   assert.match(css, /#2B4C7E/i);
 });
@@ -92,7 +92,7 @@ test("DOM 08: App.buildEnergyArcSvgMarkup renders target and actual polylines pl
   assert.ok(svg.includes("<polyline"));
   assert.ok(svg.includes("data-slot-idx="));
   assert.ok(svg.includes("data-transition-idx="));
-  assert.ok(svg.includes("#C84B31"));
+  assert.ok(svg.includes("#9F3520"));
   assert.ok(svg.includes("#2B4C7E"));
 });
 
