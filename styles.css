@@ -1431,3 +1431,61 @@ input[type="range"]::-webkit-slider-thumb {
     scroll-behavior: auto !important;
   }
 }
+
+
+@media print {
+  @page { margin: 11mm; }
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  html, body {
+    background: #fff !important;
+    color: #111 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+  body::before, body::after { display: none !important; }
+  main, section, article, aside, header, footer, div, form, fieldset, table, thead, tbody, tr, th, td {
+    background-image: none !important;
+    background-color: transparent !important;
+  }
+  h1, h2, h3, h4, p, li, dt, dd, th, td, caption, label, legend, summary, small, strong, span, div, output, code, pre {
+    color: #111 !important;
+  }
+  section, article, aside, fieldset, table, th, td, pre, hr {
+    border-color: #777 !important;
+  }
+  a { color: inherit !important; text-decoration: none !important; }
+  .skip, .skip-link, nav, button, input, select, textarea, .header-actions, .domain-tabs, .arc-preset-row, .drawer-action-row, .export-tabs { display: none !important; }
+  .console-shell, .console-grid, .left-rack, .right-console, .drawer-grid, .console-drawer {
+    display: block !important;
+    width: auto !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    height: auto !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  .console-header, .console-module, .drawer-panel, section {
+    background: #fff !important;
+    color: #111 !important;
+    border-color: #777 !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+  .drawer-table-wrap, .lab-table-wrap, .catalog-list, .export-output, pre, [class*="scroll"] {
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+  }
+  table { width: 100% !important; border-collapse: collapse !important; font-size: 8.5pt !important; }
+  th, td { white-space: normal !important; overflow-wrap: anywhere !important; }
+  pre, code { white-space: pre-wrap !important; overflow-wrap: anywhere !important; }
+  img, canvas, svg { max-width: 100% !important; height: auto !important; }
+.console-module, .console-header { margin: 0 0 4mm !important; }
+  .console-drawer { position: static !important; border: 0 !important; }
+}

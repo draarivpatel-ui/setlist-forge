@@ -29,7 +29,7 @@ node --test
 open index.html
 ```
 
-The suite currently runs 476 tests across `tests/engine.test.js`, `tests/dom-smoke.test.js`, `tests/hardening.test.js`, `tests/ui-hardening.test.js`, `tests/harmonic-lab.test.js`, and `tests/batch5-security.test.js`. The in-page lab also ships a 16-check deterministic self-test battery (SHA-256 known answers, Camelot wraparound, invariants, strict codec round-trips, canonical payload linkage, immutable export caches, trailing-content rejection, tamper detection) runnable from the Harmonic Lab panel.
+The suite currently runs 481 tests across `tests/engine.test.js`, `tests/dom-smoke.test.js`, `tests/hardening.test.js`, `tests/ui-hardening.test.js`, `tests/harmonic-lab.test.js`, `tests/batch5-security.test.js`, and `tests/static-integrity.test.js`. The in-page lab also ships a 16-check deterministic self-test battery (SHA-256 known answers, Camelot wraparound, invariants, strict codec round-trips, canonical payload linkage, immutable export caches, trailing-content rejection, tamper detection) runnable from the Harmonic Lab panel.
 
 ## License
 
