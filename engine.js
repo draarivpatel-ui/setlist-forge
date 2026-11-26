@@ -1765,13 +1765,15 @@
   }
 
   function csvCell(value) {
+    if (typeof value === "number") return Number.isFinite(value) ? String(value) : "";
     let text = String(value == null ? "" : value);
-    const leadMatch = text.match(/^ */);
+    const leadMatch = text.match(/^[\s\p{Cc}\p{Cf}\u00ad\u200b-\u200f\u202a-\u202e\u2060-\u2069\ufe00-\ufe0f\ufeff]*/u);
     const leadLen = leadMatch ? leadMatch[0].length : 0;
+    const lead = text.slice(0, leadLen);
     const head = text.charAt(leadLen);
     const numeric = /^-?[\d.,\s]+$/.test(text.slice(leadLen));
     const dangerous = head === "=" || head === "+" || head === "@" ||
-      head === "\t" || head === "\r" || (head === "-" && !numeric);
+      /[\t\r]/.test(lead) || (head === "-" && !numeric);
     if (dangerous) {
       text = "'" + text;
     }

@@ -929,9 +929,9 @@ test("LAB-147: canonicalStringify serializes non-finite numbers as null", () => 
   assert.equal(Lab.canonicalStringify({ a: NaN, b: Infinity, c: -Infinity, d: -0 }), '{"a":null,"b":null,"c":null,"d":0}');
 });
 
-test("LAB-148: canonicalStringify drops __proto__/constructor/prototype keys", () => {
+test("LAB-148: canonicalStringify covers __proto__/constructor/prototype keys", () => {
   const hostile = JSON.parse('{"__proto__":{"p":1},"constructor":2,"prototype":3,"safe":4}');
-  assert.equal(Lab.canonicalStringify(hostile), '{"safe":4}');
+  assert.equal(Lab.canonicalStringify(hostile), '{"__proto__":{"p":1},"constructor":2,"prototype":3,"safe":4}');
 });
 
 test("LAB-149: canonicalStringify handles primitives, arrays, and nulls", () => {

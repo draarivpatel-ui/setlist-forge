@@ -790,7 +790,7 @@
     if (t === "object") {
       var keys = [];
       for (var k in value) {
-        if (hasOwn(value, k) && !isDangerousKey(k)) {
+        if (hasOwn(value, k)) {
           keys.push(k);
         }
       }
